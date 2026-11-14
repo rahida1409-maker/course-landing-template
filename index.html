@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Course landing page</title>
+<meta name="description" content="Course landing page">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ccircle cx=%278%27 cy=%278%27 r=%277%27 fill=%27%230F766E%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div id="app" aria-live="polite">
+  <p class="loading">Loading…</p>
+</div>
+<noscript><p class="fatal">Please turn on JavaScript to view this course page.</p></noscript>
+<script src="content.js"></script>
+<script src="js/app.js"></script>
+<script>
+/* If app.js did not run, the folder was probably not extracted fully. */
+window.addEventListener('load', function () {
+  if (window.__courseLanding) return;
+  var a = document.getElementById('app');
+  if (a) a.innerHTML = '<div style="max-width:640px;margin:48px auto;padding:20px 24px;border:2px solid #BE123C;border-radius:12px;font-family:system-ui,sans-serif;line-height:1.6">' +
+    '<h1 style="font-size:20px;margin:0 0 8px;color:#BE123C">The page files are missing / Fail halaman tidak lengkap</h1>' +
+    '<p style="margin:0 0 8px">Extract the whole zip folder first (right-click, Extract All), then open index.html from the extracted folder. Do not open it from inside the zip.</p>' +
+    '<p style="margin:0">Ekstrak keseluruhan folder zip dahulu (klik kanan, Extract All), kemudian buka index.html daripada folder yang diekstrak. Jangan buka dari dalam zip.</p></div>';
+});
+</script>
+</body>
+</html>
