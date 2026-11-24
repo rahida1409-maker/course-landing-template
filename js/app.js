@@ -276,7 +276,7 @@ function renderHero(g, cur) {
   var cta = '<a class="btn primary" href="#start" data-track="start-here">' + esc(t('startHere')) + '</a>' +
     '<a class="btn ghost" href="#links">' + esc(t('quickLinks')) + '</a>';
   var h = '<section class="' + cls + '" id="home" aria-labelledby="h1"' + (style === 'image' ? ' data-img="' + esc(safeUrl(hero.image)) + '"' : '') + '><div class="wrap"><div class="hero-text">' +
-    '<p class="welcome"' + dp('course.welcome', 'Greeting') + '>' + esc(co.welcome || t('welcome')) + '</p><p class="code"' + dp('course.code', 'Course code') + '>' + esc(co.code) + '</p><h1 id="h1"' + dp('course.title', 'Course title') + '>' + esc(co.title) + '</h1>' +
+    (co.welcome === '' && !EDIT ? '' : '<p class="welcome"' + dp('course.welcome', 'Greeting (optional)') + '>' + esc(co.welcome == null ? t('welcome') : co.welcome) + '</p>') + '<p class="code"' + dp('course.code', 'Course code') + '>' + esc(co.code) + '</p><h1 id="h1"' + dp('course.title', 'Course title') + '>' + esc(co.title) + '</h1>' +
     ((co.faculty || co.institution || EDIT) ? '<p class="fac"><span' + dp('course.faculty', 'Faculty') + '>' + esc(co.faculty || '') + '</span>' + ((co.faculty && co.institution) || EDIT ? ' · ' : '') + '<span' + dp('course.institution', 'Institution') + '>' + esc(co.institution || '') + '</span></p>' : '') +
     ((co.lead || EDIT) ? '<p class="lead"' + dp('course.lead', 'Intro sentence') + '>' + esc(co.lead || '') + '</p>' : '') + '<div class="cta">' + cta + '</div></div>' +
     (style === 'image' ? '' : '<div class="hero-art">' + (style === 'art' ? heroArt() : '') + '</div>') + '</div>';
