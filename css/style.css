@@ -230,9 +230,9 @@ footer p{font-size:13px;line-height:1.6;color:var(--muted)}
   .nav{position:relative;gap:0}
   .brand{max-width:100%;padding-right:52px;min-width:0}
   .brand small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-  .tabs{width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-right:24px;margin-right:-20px}
-  .tabs::-webkit-scrollbar{display:none}
-  .tabs a{flex:none;white-space:nowrap}
+  .topbar{position:static}
+  .tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;padding:8px 0 12px}
+  .tabs a{justify-content:center;text-align:center;min-height:44px;padding:0 6px;line-height:1.2;background:var(--card);border:1px solid var(--line);border-radius:8px}
   .themebtn{position:absolute;top:0;right:16px}
   .hero .wrap{padding-top:40px;padding-bottom:32px}
   .hero h1{font-size:38px}
