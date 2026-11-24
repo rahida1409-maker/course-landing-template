@@ -223,7 +223,63 @@ app.addEventListener('click', function (e) {
   var w = b.getAttribute('data-open');
   if (w === 'settings') settings(); else if (w === 'schedule') schedulePanel(); else if (w === 'experiments') schedulePanel('exp'); else if (w === 'assess') assessmentPanel();
 }, true);
-var decorate0 = decorate; decorate = function () { decorate0(); notes(); };
+/* ---------- photo drop + delete group ---------- */
+var photoUrl = null, photoPath = 'assets/lecturer.jpg';
+function extras() {
+  var ph = $('#ph', app);
+  if (ph) {
+    ph.setAttribute('title', 'Drag a photo here, or click to choose one'); ph.style.cursor = 'pointer'; ph.style.outline = '2px dashed #0F766E88'; ph.style.outlineOffset = '3px';
+    if (photoUrl && getAt('lecturer.photo') === photoPath) { var old = $('img', ph); if (old) old.remove(); var im = document.createElement('img'); im.src = photoUrl; im.alt = ''; ph.insertBefore(im, ph.firstChild); }
+  }
+  $$('.pick', app).forEach(function (b) {
+    if ($('.clp-x', b)) return; b.style.position = 'relative';
+    var x = document.createElement('span'); x.className = 'clp-x'; x.setAttribute('role', 'button'); x.tabIndex = 0; x.textContent = '×';
+    x.setAttribute('data-delgroup', b.getAttribute('data-k')); x.setAttribute('aria-label', tr('remove') + ' ' + b.getAttribute('data-k')); b.appendChild(x);
+  });
+}
+function delGroup(id) {
+  var S = C.schedule; if (!S || !S.groups) return;
+  if (S.groups.length <= 1) { say('There must be at least one group.'); return; }
+  var i = S.groups.findIndex(function (g) { return g.id === id; }); if (i < 0) return;
+  S.groups.splice(i, 1); structural++; updateStatus(); refresh(); say('Group deleted.', true);
+}
+app.addEventListener('click', function (e) {
+  var x = e.target.closest && e.target.closest('[data-delgroup]');
+  if (x) { e.preventDefault(); e.stopPropagation(); delGroup(x.getAttribute('data-delgroup')); return; }
+  if (e.target.closest && e.target.closest('#ph')) { e.preventDefault(); e.stopPropagation(); fileIn.click(); }
+}, true);
+app.addEventListener('keydown', function (e) {
+  var x = e.target.closest && e.target.closest('[data-delgroup]');
+  if (x && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); delGroup(x.getAttribute('data-delgroup')); }
+}, true);
+var fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = 'image/*'; fileIn.hidden = true; document.body.appendChild(fileIn);
+fileIn.addEventListener('change', function () { if (fileIn.files[0]) takePhoto(fileIn.files[0]); fileIn.value = ''; });
+function isFiles(e) { return e.dataTransfer && [].indexOf.call(e.dataTransfer.types || [], 'Files') >= 0; }
+document.addEventListener('dragover', function (e) { if (isFiles(e)) e.preventDefault(); });
+document.addEventListener('drop', function (e) {
+  if (!isFiles(e)) return; e.preventDefault();
+  if (e.target.closest && e.target.closest('#ph') && e.dataTransfer.files[0]) takePhoto(e.dataTransfer.files[0]);
+});
+function takePhoto(f) {
+  if (!/^image\//.test(f.type)) { say('Choose an image file (JPG or PNG).'); return; }
+  var src = URL.createObjectURL(f), im = new Image();
+  im.onload = function () {
+    var k = Math.min(1, 400 / Math.max(im.width, im.height)), cv = document.createElement('canvas');
+    cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k);
+    var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(im, 0, 0, cv.width, cv.height);
+    URL.revokeObjectURL(src);
+    cv.toBlob(function (bl) {
+      if (!bl) { say('Could not read that image.'); return; }
+      if (photoUrl) URL.revokeObjectURL(photoUrl);
+      photoUrl = URL.createObjectURL(bl); setAt('lecturer.photo', photoPath); mark('lecturer.photo'); refresh();
+      toast.innerHTML = '<span>Photo ready (' + Math.max(1, Math.round(bl.size / 1024)) + ' KB). Save it, then upload it to the assets folder.</span><a href="' + photoUrl + '" download="lecturer.jpg" style="font:inherit;background:#fff;color:#12263F;border-radius:6px;padding:4px 10px;text-decoration:none">Save lecturer.jpg</a>';
+      toast.style.display = 'flex'; clearTimeout(say.t); say.t = setTimeout(function () { toast.style.display = 'none'; }, 30000);
+    }, 'image/jpeg', 0.88);
+  };
+  im.onerror = function () { URL.revokeObjectURL(src); say('Could not read that image.'); };
+  im.src = src;
+}
+var decorate0 = decorate; decorate = function () { decorate0(); notes(); extras(); };
 P.afterRender = function () { decorate(); };
 decorate();
 
