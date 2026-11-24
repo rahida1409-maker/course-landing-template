@@ -227,6 +227,13 @@ footer p{font-size:13px;line-height:1.6;color:var(--muted)}
 
 @media (max-width:700px){
   .wrap,.nav,.strip{padding-left:20px;padding-right:20px}
+  .nav{position:relative;gap:0}
+  .brand{max-width:100%;padding-right:52px;min-width:0}
+  .brand small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .tabs{width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-right:24px;margin-right:-20px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs a{flex:none;white-space:nowrap}
+  .themebtn{position:absolute;top:0;right:16px}
   .hero .wrap{padding-top:40px;padding-bottom:32px}
   .hero h1{font-size:38px}
   .sec{padding:24px 0}.sec h2{font-size:32px}
