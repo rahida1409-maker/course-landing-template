@@ -1,5 +1,7 @@
 # Course Landing Page Template / Templat Halaman Utama Kursus
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24213008.svg)](https://doi.org/10.5281/zenodo.24213008)
+
 A free, static landing page for one course. No server, no database, no student data.
 Halaman utama kursus yang statik dan percuma. Tiada pelayan, tiada pangkalan data, tiada data pelajar.
 
@@ -54,7 +56,7 @@ Halaman tidak menyimpan data pelajar. Tanda semak "Mula di sini" dan pilihan kum
 | Halaman GitHub tidak berubah | Tunggu seminit, kemudian muat semula dengan Ctrl+F5. |
 
 ### Kemas kini bahagian (rujukan ringkas `content.js`)
-`course`, `design`, `lecturer`, `links`, `startHere`, `quickLinks`, `sections`, `schedule`, `experiments`, `workflow`, `assessment`, `rules`, `support`, `analytics`, `feedback`, `prepwise`, `footer`, `strings`. Pautan ditulis sekali dalam `links` dan dirujuk dengan kuncinya. Kunci `email` = e-mel pensyarah. `#schedule` dsb. memaut ke bahagian dalam halaman. Dalam teks, `{testDate}`, `{group}` dan `{session}` digantikan secara automatik. Pengguna lanjutan boleh menyunting `content.js` terus, atau menggunakan `content.json` (letak di sebelah `index.html`, buang `content.js`; perlu dihos atau `python -m http.server`).
+`course`, `design`, `lecturer`, `links`, `startHere`, `quickLinks`, `sections`, `schedule`, `experiments`, `workflow`, `assessment`, `rules`, `support`, `analytics`, `feedback`, `prepwise`, `footer`, `strings`. Kredit kecil di kaki halaman boleh dimatikan dengan `footer.credit: false`, atau diubah dengan `footer.creditText` dan `footer.creditUrl`. Pautan ditulis sekali dalam `links` dan dirujuk dengan kuncinya. Kunci `email` = e-mel pensyarah. `#schedule` dsb. memaut ke bahagian dalam halaman. Dalam teks, `{testDate}`, `{group}` dan `{session}` digantikan secara automatik. Pengguna lanjutan boleh menyunting `content.js` terus, atau menggunakan `content.json` (letak di sebelah `index.html`, buang `content.js`; perlu dihos atau `python -m http.server`).
 
 ---
 
@@ -98,5 +100,17 @@ Content lives in `content.js` (`window.__courseContent = {...}`). You can edit i
 
 ---
 
+`design.theme` = `"light"` (lalai) atau `"dark"` (hijau zamrud gelap); boleh ditukar dalam Settings > Theme. / `design.theme` = `"light"` (default) or `"dark"` (dark emerald); change it in Settings > Theme. Butang bulan/matahari di header membolehkan pelajar menukar sendiri (disimpan dalam pelayar mereka); matikan dengan `design.themeToggle: false`. / A moon/sun button in the header lets students switch themselves (saved in their browser); turn it off with `design.themeToggle: false`.
+
 ## Licence / Lesen
 Code (`index.html`, `css/`, `js/`): MIT, see `LICENSE`. Sample text and documentation: CC BY 4.0, see `LICENSE-CONTENT.md`. Citation: `CITATION.cff`.
+
+## Cite / Petikan
+
+**English.** If you use this template in your teaching, a publication or a presentation, please cite it. When the article about the template is published, please cite the article; until then cite the software record below. Use the GitHub button "Cite this repository" (top right of the repository page) for ready-made APA or BibTeX text. The DOI below always points to the latest version.
+
+**Bahasa Melayu.** Jika anda menggunakan templat ini dalam pengajaran, penerbitan atau pembentangan, sila sitasikannya. Apabila artikel tentang templat ini diterbitkan, sila sitasikan artikel itu; sebelum itu gunakan rekod perisian di bawah. Butang "Cite this repository" di GitHub (kanan atas halaman repositori) menyediakan teks APA atau BibTeX siap pakai. DOI di bawah sentiasa menuju ke versi terkini.
+
+Sharudin, R. W. (2026). *Course Landing Page Template* (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.24213008
+
+Concept DOI (all versions) / DOI konsep (semua versi): shown on the Zenodo record page, under "Versions".
