@@ -172,6 +172,6 @@ window.__courseContent = {
 
   "prepwise": { "enabled": false, "url": "", "courseCode": "", "label": "PrepWISE", "text": "" },
 
-  "footer": { "text": "", "credit": true, "creditText": "", "creditUrl": "" },
+  "footer": { "text": "", "credit": false, "creditText": "", "creditUrl": "" },
   "strings": {}
 };
