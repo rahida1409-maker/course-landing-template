@@ -8,7 +8,8 @@ license: MIT
 authors:
   - family-names: "Sharudin"
     given-names: "Rahida Wati"
-    affiliation: "Universiti Teknologi MARA (UiTM)"
+    affiliation: "Faculty of Chemical Engineering, Universiti Teknologi MARA (UiTM)"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"   <- remove the # and put your ORCID iD
 abstract: >-
   A static, copyable landing page template for a single course. Content is edited in the browser
   and stored in one file. No server, database or student data.
@@ -17,5 +18,17 @@ keywords:
   - course design
   - GitHub Pages
   - teaching and learning
-repository-code: "https://github.com/rahida1409-maker/course-landing-template"   # confirm the account name
-# doi: "10.5281/zenodo.XXXXXXX"                       # add after the first Zenodo release
+repository-code: "https://github.com/rahida1409-maker/course-landing-template"
+doi: "10.5281/zenodo.24213008"
+
+# When the article about this template is published, remove the # from the lines below and fill them in.
+# GitHub's "Cite this repository" button will then suggest the article first.
+# preferred-citation:
+#   type: article
+#   authors:
+#     - family-names: "Sharudin"
+#       given-names: "Rahida Wati"
+#   title: "Title of the article"
+#   journal: "Journal name"
+#   year: 2027
+#   doi: "10.xxxx/xxxxx"
