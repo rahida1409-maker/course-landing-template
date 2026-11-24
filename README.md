@@ -21,10 +21,10 @@ Hero (tajuk, kod, banner), "Mula di sini", pautan pantas, jadual mingguan mengik
    `file:///C:/Users/NAMA/Downloads/course-landing-template/index.html?edit`
 2. Klik teks yang bergaris putus dan taip untuk menukar. Gunakan × untuk memadam item, **+ Tambah** untuk menambah, dan 🔗 untuk memilih pautan.
 3. Bar di atas ada:
-   - **Tetapan**: fakulti, semester, bahasa, warna, banner, pensyarah, bahagian yang dipaparkan, senarai pautan.
-   - **Panel jadual**: kumpulan, minggu, jenis, tarikh, cuti, eksperimen.
-   - **Panel penilaian**: wajaran, kad laporan dan kriteria markah.
-   - **Semak**: senarai ralat dan amaran sebelum anda simpan.
+   - **Page setup**: bahasa, tema, banner, pensyarah, bahagian yang dipaparkan, senarai pautan.
+   - **Schedule panel**: kumpulan, minggu, jenis, tarikh, cuti, eksperimen.
+   - **Assessment panel**: wajaran, kad laporan dan kriteria markah.
+   - **Check**: senarai ralat dan amaran sebelum anda simpan.
 4. Tekan **Muat turun content.js**. Fail itu dimuat turun ke folder Downloads.
 5. **Gantikan** `content.js` lama dalam folder halaman dengan fail baharu, kemudian muat semula halaman.
 
@@ -38,13 +38,13 @@ Suntingan disimpan dalam memori pelayar sahaja sehingga anda muat turun. Pelayar
 5. Untuk mengemas kini: buka `alamat-anda/?edit`, sunting, muat turun `content.js`, kemudian di GitHub pilih **Add file → Upload files** dan muat naik fail itu (ia menggantikan yang lama).
 
 ### Gambar
-Letakkan gambar dalam folder `assets/` (contoh `assets/lecturer.jpg`, `assets/banner.jpg`), kemudian tulis namanya dalam **Tetapan**. Tambah penerangan gambar untuk pembaca skrin. Jika fail tiada, halaman menggunakan inisial atau lukisan lalai.
+Letakkan gambar dalam folder `assets/` (contoh `assets/lecturer.jpg`, `assets/banner.jpg`), kemudian tulis namanya dalam **Page setup**. Tambah penerangan gambar untuk pembaca skrin. Jika fail tiada, halaman menggunakan inisial atau lukisan lalai.
 
 ### Aksesibiliti
 Pautan langkau ke kandungan, struktur tajuk, fokus papan kekunci yang jelas, kontras teks sekurang-kurangnya 4.5:1 (warna utama dilaraskan automatik), dan tiada fon atau skrip luaran melainkan anda mengaktifkan analitik. Sila uji dengan pembaca skrin dan telefon sebenar sebelum menerbitkan.
 
 ### Privasi
-Halaman tidak menyimpan data pelajar. Tanda semak "Mula di sini" dan pilihan kumpulan disimpan hanya dalam pelayar pelajar sendiri. GoatCounter (pengiraan lawatan) **mati** kecuali anda isi kod dalam **Tetapan**.
+Halaman tidak menyimpan data pelajar. Tanda semak "Mula di sini" dan pilihan kumpulan disimpan hanya dalam pelayar pelajar sendiri. GoatCounter (pengiraan lawatan) **mati** kecuali anda isi kod dalam **Page setup**.
 
 ### Masalah biasa
 | Masalah | Penyelesaian |
@@ -56,7 +56,7 @@ Halaman tidak menyimpan data pelajar. Tanda semak "Mula di sini" dan pilihan kum
 | Halaman GitHub tidak berubah | Tunggu seminit, kemudian muat semula dengan Ctrl+F5. |
 
 ### Kemas kini bahagian (rujukan ringkas `content.js`)
-`course`, `design`, `lecturer`, `links`, `startHere`, `quickLinks`, `sections`, `schedule`, `experiments`, `workflow`, `assessment`, `rules`, `support`, `analytics`, `feedback`, `prepwise`, `footer`, `strings`. Kredit kecil di kaki halaman boleh dimatikan dengan `footer.credit: false`, atau diubah dengan `footer.creditText` dan `footer.creditUrl`. Pautan ditulis sekali dalam `links` dan dirujuk dengan kuncinya. Kunci `email` = e-mel pensyarah. `#schedule` dsb. memaut ke bahagian dalam halaman. Dalam teks, `{testDate}`, `{group}` dan `{session}` digantikan secara automatik. Pengguna lanjutan boleh menyunting `content.js` terus, atau menggunakan `content.json` (letak di sebelah `index.html`, buang `content.js`; perlu dihos atau `python -m http.server`).
+`course`, `design`, `lecturer`, `links`, `startHere`, `quickLinks`, `sections`, `schedule`, `experiments`, `workflow`, `assessment`, `rules`, `support`, `analytics`, `feedback`, `prepwise`, `footer`, `strings`. Warna utama (pilihan) ditetapkan dengan `design.accent`, contohnya `"#0F766E"`; tiada medan dalam Page setup. Kredit kecil di kaki halaman tidak dipaparkan secara lalai; hidupkan dengan `footer.credit: true`, atau diubah dengan `footer.creditText` dan `footer.creditUrl`. Pautan ditulis sekali dalam `links` dan dirujuk dengan kuncinya. Kunci `email` = e-mel pensyarah. `#schedule` dsb. memaut ke bahagian dalam halaman. Dalam teks, `{testDate}`, `{group}` dan `{session}` digantikan secara automatik. Pengguna lanjutan boleh menyunting `content.js` terus, atau menggunakan `content.json` (letak di sebelah `index.html`, buang `content.js`; perlu dihos atau `python -m http.server`).
 
 ---
 
@@ -73,7 +73,7 @@ Hero (title, code, banner), "Start here", quick links, weekly schedule per class
 1. Open `index.html` in your browser and add `?edit` to the end of the address, for example
    `file:///C:/Users/NAME/Downloads/course-landing-template/index.html?edit`
 2. Click any dashed text and type. Use × to remove an item, **+ Tambah** to add one, and 🔗 to choose a link.
-3. The top bar has **Tetapan** (settings), **Panel jadual** (schedule), **Panel penilaian** (assessment), and **Semak** (checks).
+3. The top bar has **Page setup**, **Schedule panel**, **Assessment panel**, and **Check**.
 4. Press **Muat turun content.js** to download your content.
 5. **Replace** the old `content.js` in the page folder with the new one and reload.
 
@@ -87,20 +87,20 @@ Edits live in the browser's memory until you download. The browser warns you if 
 5. To update, open `your-address/?edit`, edit, download `content.js`, then upload it to GitHub the same way (it replaces the old file).
 
 ### Images
-Put images in `assets/` (for example `assets/lecturer.jpg`, `assets/banner.jpg`) and type the file name in **Tetapan**. Add an image description for screen readers. If a file is missing, the page falls back to initials or the default art.
+Put images in `assets/` (for example `assets/lecturer.jpg`, `assets/banner.jpg`) and type the file name in **Page setup**. Add an image description for screen readers. If a file is missing, the page falls back to initials or the default art.
 
 ### Accessibility
 Skip link, heading structure, visible keyboard focus, text contrast of at least 4.5:1 (the accent colour is adjusted automatically), and no external fonts or scripts unless you turn on analytics. Please test with a screen reader and a real phone before publishing.
 
 ### Privacy
-The page stores no student data. "Start here" ticks and the chosen group are kept only in the student's own browser. GoatCounter (visit counting) is **off** unless you enter a code in **Tetapan**.
+The page stores no student data. "Start here" ticks and the chosen group are kept only in the student's own browser. GoatCounter (visit counting) is **off** unless you enter a code in **Page setup**.
 
 ### Advanced
 Content lives in `content.js` (`window.__courseContent = {...}`). You can edit it by hand, or use `content.json` instead (put it next to `index.html`, delete `content.js`; it must be hosted or served with `python -m http.server`). `?content=name.json` loads another file for testing, and `?debug` shows warnings.
 
 ---
 
-`design.theme` = `"light"` (lalai) atau `"dark"` (hijau zamrud gelap); boleh ditukar dalam Settings > Theme. / `design.theme` = `"light"` (default) or `"dark"` (dark emerald); change it in Settings > Theme. Butang bulan/matahari di header membolehkan pelajar menukar sendiri (disimpan dalam pelayar mereka); matikan dengan `design.themeToggle: false`. / A moon/sun button in the header lets students switch themselves (saved in their browser); turn it off with `design.themeToggle: false`.
+`design.theme` = `"light"` (lalai) atau `"dark"` (hijau zamrud gelap); boleh ditukar dalam Page setup > Theme. / `design.theme` = `"light"` (default) or `"dark"` (dark emerald); change it in Page setup > Theme. Butang bulan/matahari di header membolehkan pelajar menukar sendiri (disimpan dalam pelayar mereka); matikan dengan `design.themeToggle: false`. / A moon/sun button in the header lets students switch themselves (saved in their browser); turn it off with `design.themeToggle: false`.
 
 ## Licence / Lesen
 Code (`index.html`, `css/`, `js/`): MIT, see `LICENSE`. Sample text and documentation: CC BY 4.0, see `LICENSE-CONTENT.md`. Citation: `CITATION.cff`.
