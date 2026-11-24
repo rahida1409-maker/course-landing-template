@@ -37,16 +37,16 @@ ol,ul{margin:0;padding:0;list-style:none}
 
 /* Sections */
 section{scroll-margin-top:72px}
-.sec{padding:44px 0}
+.sec{padding:32px 0}
 .sec.alt{background:var(--alt)}
 .kick{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text);margin-bottom:8px}
 .sec h2{font-size:40px;margin-bottom:12px}
 .sec .intro{font-size:17px;line-height:1.55;color:var(--muted);max-width:640px}
-.head{margin-bottom:24px}
+.head{margin-bottom:20px}
 
 /* Hero */
 .hero{background:var(--hero-bg);position:relative;overflow:hidden}
-.hero .wrap{padding-top:72px;padding-bottom:56px;display:flex;flex-wrap:wrap;align-items:center;gap:48px}
+.hero .wrap{padding-top:48px;padding-bottom:32px;display:flex;flex-wrap:wrap;align-items:center;gap:48px}
 .hero-text{flex:1 1 520px;min-width:0;position:relative}
 .welcome{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
 .code{font-family:var(--head);font-weight:700;font-size:20px;color:var(--accent-text)}
@@ -73,7 +73,7 @@ section{scroll-margin-top:72px}
 .hero.none .hero-art{display:none}
 
 /* Info strip and week card */
-.strip{max-width:var(--max);margin:0 auto;padding:0 48px 48px;display:flex;flex-wrap:wrap;gap:16px;position:relative}
+.strip{max-width:var(--max);margin:0 auto;padding:0 48px 32px;display:flex;flex-wrap:wrap;gap:16px;position:relative}
 .strip>div,.strip>aside{flex:1 1 220px;min-width:0;padding:16px 20px;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink)}
 .strip .l{font-size:13px;font-weight:600;color:var(--muted)}
 .strip .v{margin-top:4px;font-size:17px;font-weight:600;overflow-wrap:anywhere}
@@ -229,7 +229,7 @@ footer p{font-size:13px;line-height:1.6;color:var(--muted)}
   .wrap,.nav,.strip{padding-left:20px;padding-right:20px}
   .hero .wrap{padding-top:40px;padding-bottom:32px}
   .hero h1{font-size:38px}
-  .sec{padding:32px 0}.sec h2{font-size:32px}
+  .sec{padding:24px 0}.sec h2{font-size:32px}
   .step{flex-wrap:wrap}
   .bars li{grid-template-columns:1fr 1fr 30px}
   .lec-card{flex-direction:column;align-items:flex-start}
