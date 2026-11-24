@@ -5,6 +5,7 @@
 var P = window.__clp; if (!P || !P.edit) return;
 var C = P.get(), app = document.getElementById('app');
 var dirty = {}, structural = 0, undoSnap = null, drawerOpen = false;
+var hist = [], lastJSON = JSON.stringify(C), origJSON = lastJSON, lastPath = null, lastAt = 0;
 
 /* ---------- helpers ---------- */
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -23,7 +24,7 @@ function parentAt(path, make) {
 function setAt(path, val) { var p = parentAt(path, true); p.o[p.key] = val; }
 function delAt(path) { var p = parentAt(path, false); if (p) delete p.o[p.key]; }
 function listAt(path, make) { var v = getAt(path); if (!Array.isArray(v)) { if (!make) return []; v = []; setAt(path, v); } return v; }
-function mark(path) { dirty[path || ('#' + Math.random())] = 1; updateStatus(); }
+function mark(path) { dirty[path || ('#' + Math.random())] = 1; lastPath = path || null; updateStatus(); }
 function snapshot() { undoSnap = JSON.stringify(C); }
 function count() { return Object.keys(dirty).length; }
 var T = {
@@ -40,6 +41,7 @@ css.textContent = [
 '#clp-bar{position:fixed;top:0;left:0;right:0;height:var(--clp-h);z-index:3000;background:#12263F;color:#fff;display:flex;align-items:center;gap:8px;padding:0 12px;font:14px/1.2 system-ui,sans-serif;overflow-x:auto}',
 '#clp-bar b{white-space:nowrap}#clp-bar .st{margin-left:4px;color:#FCD9A0;white-space:nowrap}#clp-bar .sp{flex:1}',
 '#clp-bar button,.clp-btn{font:inherit;border:1px solid #fff6;background:transparent;color:#fff;border-radius:8px;padding:7px 11px;cursor:pointer;white-space:nowrap}',
+'#clp-bar button:disabled{opacity:.4;cursor:default}',
 '#clp-bar button.pri{background:#fff;color:#12263F;font-weight:700}',
 '#clp-bar button:focus-visible,.clp-btn:focus-visible,.clp-x:focus-visible,.clp-add:focus-visible{outline:3px solid #FCD9A0;outline-offset:2px}',
 '#app [data-p]{outline:1px dashed #0F766E88;outline-offset:2px;border-radius:3px;min-width:2ch;cursor:text}',
@@ -83,19 +85,31 @@ document.head.appendChild(css);
 /* ---------- bar ---------- */
 var bar = document.createElement('div');
 bar.id = 'clp-bar'; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Edit mode');
-bar.innerHTML = '<b>' + tr('edit') + '</b><span class="st" id="clp-st" role="status" aria-live="polite"></span><span class="sp"></span>' +
+bar.innerHTML = '<b>' + tr('edit') + '</b><span class="st" id="clp-st" role="status" aria-live="polite"></span><button type="button" id="clp-undo" data-a="undo" disabled>' + tr('undo') + '</button><span class="sp"></span>' +
   '<button type="button" data-a="settings">' + tr('settings') + '</button><button type="button" data-a="schedule">' + tr('schedule') + '</button><button type="button" data-a="assess">Assessment panel</button><button type="button" data-a="check">' + tr('check') + '</button><button type="button" data-a="notes" aria-pressed="false">Hide notes</button>' +
   '<button type="button" class="pri" data-a="download">' + tr('download') + '</button><button type="button" data-a="exit">' + tr('exit') + '</button>';
 document.body.insertBefore(bar, document.body.firstChild);
 var toast = document.createElement('div'); toast.id = 'clp-toast'; toast.setAttribute('role', 'status'); document.body.appendChild(toast);
-function updateStatus() { var n = count() + structural; $('#clp-st').textContent = n ? (n + ' ' + tr('changes')) : tr('none'); }
+function commit() {
+  var cur = JSON.stringify(C); if (cur === lastJSON) return;
+  var now = Date.now(), same = lastPath && hist.length && lastPath === commit.p && now - lastAt < 1500;
+  if (!same) { hist.push(lastJSON); if (hist.length > 60) hist.shift(); }
+  commit.p = lastPath; lastAt = now; lastJSON = cur; lastPath = null;
+}
+function doUndo() {
+  if (!hist.length) return;
+  var prev = hist.pop(); replaceC(JSON.parse(prev)); lastJSON = prev; commit.p = null;
+  if (prev === origJSON) { dirty = {}; structural = 0; } else structural++;
+  toast.style.display = 'none'; updateStatus(); refresh();
+}
+function updateStatus() { commit(); var ub = $('#clp-undo'); if (ub) ub.disabled = !hist.length; var n = count() + structural; $('#clp-st').textContent = n ? (n + ' ' + tr('changes')) : tr('none'); }
 updateStatus();
 function say(msg, undo) {
   toast.innerHTML = '<span>' + esc(msg) + '</span>' + (undo ? '<button type="button" data-a="undo">' + tr('undo') + '</button>' : '');
   toast.style.display = 'flex'; clearTimeout(say.t); say.t = setTimeout(function () { toast.style.display = 'none'; }, undo ? 8000 : 3500);
 }
 toast.addEventListener('click', function (e) {
-  if (e.target.getAttribute('data-a') === 'undo' && undoSnap) { C = JSON.parse(undoSnap); replaceC(C); undoSnap = null; structural++; updateStatus(); toast.style.display = 'none'; refresh(); }
+  if (e.target.getAttribute('data-a') === 'undo') doUndo();
 });
 function replaceC(n) { var o = P.get(); Object.keys(o).forEach(function (k) { delete o[k]; }); Object.keys(n).forEach(function (k) { o[k] = n[k]; }); C = o; }
 
@@ -115,7 +129,7 @@ app.addEventListener('input', function (e) {
   var el = e.target.closest('[data-p]'); if (!el) return;
   var path = el.getAttribute('data-p'), v = el.textContent.replace(/\s+/g, ' ').trim();
   if (v === '' && REQUIRED[path]) return;
-  if (v === '') delAt(path); else setAt(path, v);
+  if (v === '') { if (path === 'course.welcome') setAt(path, ''); else delAt(path); } else setAt(path, v);
   mark(path);
 });
 app.addEventListener('focusout', function (e) {
@@ -124,6 +138,13 @@ app.addEventListener('focusout', function (e) {
   if (REQUIRED[path] && el.textContent.trim() === '') { el.textContent = getAt(path) || ''; say('This field is required.'); }
   if (dirty[path]) refreshSoon();
 });
+var pendSel = null;
+function selAll(el) { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+app.addEventListener('focusin', function (e) {
+  var el = e.target.closest && e.target.closest('[data-p]'); if (!el || !el.textContent) return;
+  pendSel = el; selAll(el); setTimeout(function () { if (pendSel === el) pendSel = null; }, 500);
+});
+app.addEventListener('mouseup', function () { if (pendSel) { selAll(pendSel); pendSel = null; } }, true);
 app.addEventListener('keydown', function (e) {
   var el = e.target.closest && e.target.closest('[data-p]'); if (!el) return;
   if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
@@ -176,7 +197,7 @@ function decorate() {
   });
 }
 var NOTES = {
-  home: ['mix', 'Edit here + Page setup', 'Click any text above to edit it. Class group and Session come from the Schedule panel. Banner style and image: Page setup.', [['settings', 'Open Page setup'], ['schedule', 'Open Schedule panel']]],
+  home: ['mix', 'Edit here + Page setup', 'Click any text above to edit it. Class group and Session come from the Schedule panel. Banner style and image: Page setup.', [['schedule', 'Open Schedule panel']]],
   start: ['dir', 'Edit here', 'Click a step to edit it. Use the link icon to choose its button link.'],
   links: ['mix', 'Edit here + Page setup', 'Edit titles and hints here. Link addresses are in Page setup.', [['settings', 'Open Page setup']]],
   schedule: ['auto', 'Automatic', 'Tiles come from the Schedule panel. Click the heading to edit it.', [['schedule', 'Open Schedule panel']]],
@@ -545,8 +566,11 @@ function download() {
 /* ---------- bar actions + leave guard ---------- */
 bar.addEventListener('click', function (e) {
   var a = e.target.getAttribute && e.target.getAttribute('data-a'); if (!a) return;
-  if (a === 'settings') settings(); else if (a === 'schedule') schedulePanel(); else if (a === 'assess') assessmentPanel(); else if (a === 'check') checker(); else if (a === 'notes') { var h = document.body.classList.toggle('clp-nonotes'); e.target.setAttribute('aria-pressed', h ? 'true' : 'false'); e.target.textContent = h ? 'Show notes' : 'Hide notes'; } else if (a === 'download') download();
+  if (a === 'undo') doUndo(); else if (a === 'settings') settings(); else if (a === 'schedule') schedulePanel(); else if (a === 'assess') assessmentPanel(); else if (a === 'check') checker(); else if (a === 'notes') { var h = document.body.classList.toggle('clp-nonotes'); e.target.setAttribute('aria-pressed', h ? 'true' : 'false'); e.target.textContent = h ? 'Show notes' : 'Hide notes'; } else if (a === 'download') download();
   else if (a === 'exit') { if ((count() + structural) && !window.confirm('You have unsaved changes. Exit anyway?')) return; window.onbeforeunload = null; location.search = location.search.replace(/([?&])edit(=[^&]*)?(&|$)/, '$1').replace(/[?&]$/, ''); }
+});
+document.addEventListener('keydown', function (e) {
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !e.target.closest('input,textarea,select,[data-p]') && hist.length) { e.preventDefault(); doUndo(); }
 });
 window.onbeforeunload = function (e) { if (count() + structural) { e.preventDefault(); e.returnValue = ''; return ''; } };
 window.__clpEditor = { ser: ser, download: download };
