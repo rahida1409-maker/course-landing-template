@@ -19,10 +19,10 @@ window.__courseContent = {
   },
 
   "lecturer": {
-    "name": "Dr. Nama Pensyarah",
+    "name": "Lecturer Name",
     "role": "Course lecturer",
     "affiliation": "Faculty of Example, Your University",
-    "email": "nama@example.edu",
+    "email": "lecturer@example.edu",
     "photo": "assets/lecturer.jpg",
     "introVideo": ""
   },
@@ -99,11 +99,11 @@ window.__courseContent = {
   "experiments": {
     "word": "Lab",
     "title": "Your experiments",
-    "intro": "Dates follow your class group. Blue is closed-ended (CE), teal is open-ended (OE).",
+    "intro": "Dates follow your class group. CE means closed-ended (fixed procedure). OE means open-ended (you plan your own).",
     "items": [
-      { "name": "Sample closed-ended experiment", "short": "Closed-ended sample", "openEnded": false, "co": "CO1", "report": "TR", "reportLabel": "Technical Report 1", "manual": "materials" },
-      { "name": "Sample open-ended experiment A", "short": "Open-ended A", "openEnded": true, "co": "CO1 · CO2", "report": "LR", "reportLabel": "Lab Report 2", "manual": "materials" },
-      { "name": "Sample open-ended experiment B", "short": "Open-ended B", "openEnded": true, "co": "CO2", "report": "LR", "reportLabel": "Lab Report 3", "manual": "materials" }
+      { "name": "Sample closed-ended experiment", "short": "Sample experiment 1", "openEnded": false, "co": "CO1", "report": "TR", "reportLabel": "Technical Report 1", "manual": "materials" },
+      { "name": "Sample open-ended experiment A", "short": "Sample experiment 2", "openEnded": true, "co": "CO1 · CO2", "report": "LR", "reportLabel": "Lab Report 2", "manual": "materials" },
+      { "name": "Sample open-ended experiment B", "short": "Sample experiment 3", "openEnded": true, "co": "CO2", "report": "LR", "reportLabel": "Lab Report 3", "manual": "materials" }
     ]
   },
 
@@ -172,6 +172,6 @@ window.__courseContent = {
 
   "prepwise": { "enabled": false, "url": "", "courseCode": "", "label": "PrepWISE", "text": "" },
 
-  "footer": { "text": "" },
+  "footer": { "text": "", "credit": true, "creditText": "", "creditUrl": "" },
   "strings": {}
 };
