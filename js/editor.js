@@ -27,7 +27,7 @@ function mark(path) { dirty[path || ('#' + Math.random())] = 1; updateStatus(); 
 function snapshot() { undoSnap = JSON.stringify(C); }
 function count() { return Object.keys(dirty).length; }
 var T = {
-  ms: { edit: 'Edit mode', changes: 'unsaved changes', none: 'No changes', settings: 'Settings', schedule: 'Schedule panel', check: 'Check', download: (window.__clpSource === 'js' ? 'Download content.js' : 'Download content.json'), exit: 'Exit', add: '+ Add', remove: 'Delete', link: 'Link', undo: 'Undo', close: 'Close' }
+  ms: { edit: 'Edit mode', changes: 'unsaved changes', none: 'No changes', settings: 'Page setup', schedule: 'Schedule panel', check: 'Check', download: (window.__clpSource === 'js' ? 'Download content.js' : 'Download content.json'), exit: 'Exit', add: '+ Add', remove: 'Delete', link: 'Link', undo: 'Undo', close: 'Close' }
 };
 function tr(k) { return T.ms[k] || k; }
 
@@ -55,6 +55,7 @@ css.textContent = [
 '.clp-note button:focus-visible{outline:3px solid #12263F;outline-offset:2px}',
 '#app .head{display:grid;grid-template-columns:minmax(0,1fr) 240px;column-gap:18px;align-items:start}#app .head>*{grid-column:1}#app .head>.clp-note{grid-column:2;grid-row:1/span 3}',
 'main>.clp-note.nb{max-width:calc(var(--max) - 96px);margin:10px auto;width:calc(100% - 96px);display:block}@media (max-width:760px){main>.clp-note.nb{width:calc(100% - 32px)}}',
+'.hero>.clp-note.nb{position:relative;max-width:calc(var(--max) - 96px);margin:0 auto 14px;width:calc(100% - 96px);display:block}@media (max-width:760px){.hero>.clp-note.nb{width:calc(100% - 40px)}}',
 'body.clp-nonotes .clp-note{display:none!important}',
 '@media (max-width:760px){#app .head{display:block}#app .head>.clp-note{margin:0 0 10px}}',
 '.clp-x,.clp-lk{position:absolute;top:-10px;z-index:5;width:28px;height:28px;border-radius:50%;border:1px solid #0003;background:#fff;color:#12263F;cursor:pointer;font:16px/1 system-ui;display:grid;place-items:center;padding:0}',
@@ -175,15 +176,15 @@ function decorate() {
   });
 }
 var NOTES = {
-  home: ['dir', 'Edit here', 'Click the title, code, greeting and intro sentence. Banner style and image: Settings.', [['settings', 'Open Settings']]],
-  start: ['dir', 'Edit here', 'Click a step to edit it. Use the link icon on a step to choose where its button goes.'],
-  links: ['mix', 'Edit here + Settings', 'Titles and hints are edited here. The link addresses are kept in Settings, under Links.', [['settings', 'Open Settings']]],
-  schedule: ['auto', 'Automatic', 'The weekly tiles are built from the Schedule panel. Only the section title and intro are edited here.', [['schedule', 'Open Schedule panel']]],
-  experiments: ['auto', 'Automatic', 'Lab names and CE/OE come from the Schedule panel, Experiments tab. Dates come from the schedule.', [['experiments', 'Open Experiments']]],
-  workflow: ['dir', 'Edit here', 'Click any step title or text. Add or remove steps with the small buttons.'],
-  assessment: ['auto', 'Automatic', 'Percentages, report cards and rubrics come from the Assessment panel. Titles and short descriptions can be edited here.', [['assess', 'Open Assessment panel']]],
-  rules: ['dir', 'Edit here', 'Click a rule or support item to edit it. Add or remove items with the small buttons.'],
-  lecturer: ['mix', 'Edit here + Settings', 'The name is edited here. Position, email, photo and video: Settings.', [['settings', 'Open Settings']]]
+  home: ['mix', 'Edit here + Page setup', 'Click any text above to edit it. Class group and Session come from the Schedule panel. Banner style and image: Page setup.', [['settings', 'Open Page setup'], ['schedule', 'Open Schedule panel']]],
+  start: ['dir', 'Edit here', 'Click a step to edit it. Use the link icon to choose its button link.'],
+  links: ['mix', 'Edit here + Page setup', 'Edit titles and hints here. Link addresses are in Page setup.', [['settings', 'Open Page setup']]],
+  schedule: ['auto', 'Automatic', 'Tiles come from the Schedule panel. Click the heading to edit it.', [['schedule', 'Open Schedule panel']]],
+  experiments: ['auto', 'Automatic', 'Lab names, CE/OE and dates come from the Schedule panel. Click the heading to edit it.', [['experiments', 'Open Experiments']]],
+  workflow: ['dir', 'Edit here', 'Click any text to edit it. Add or remove steps with the small buttons.'],
+  assessment: ['auto', 'Automatic', 'Percentages, reports and rubrics come from the Assessment panel. Click the heading to edit it.', [['assess', 'Open Assessment panel']]],
+  rules: ['dir', 'Edit here', 'Click any text to edit it. Add or remove items with the small buttons.'],
+  lecturer: ['mix', 'Edit here + Page setup', 'Name, position and affiliation: edit here. Email, photo and video: Page setup.', [['settings', 'Open Page setup']]]
 };
 function notes() {
   Object.keys(NOTES).forEach(function (id) {
@@ -191,7 +192,8 @@ function notes() {
     var n = NOTES[id], d = document.createElement('aside'), head = $('.head', sec), wrap = $('.wrap', sec);
     d.className = 'clp-note ' + n[0] + (head ? '' : ' nb'); d.setAttribute('role', 'note'); d.setAttribute('contenteditable', 'false');
     d.innerHTML = '<b>' + n[1] + '</b>' + esc(n[2]) + (n[3] ? '<br>' + n[3].map(function (x) { return '<button type="button" data-open="' + x[0] + '">' + x[1] + '</button>'; }).join('') : '');
-    if (head) head.insertBefore(d, head.firstChild); else sec.parentNode.insertBefore(d, sec);
+    var strip = id === 'home' ? $('.strip', sec) : null;
+    if (strip) strip.parentNode.insertBefore(d, strip); else if (head) head.insertBefore(d, head.firstChild); else sec.parentNode.insertBefore(d, sec);
   });
 }
 app.addEventListener('click', function (e) {
@@ -263,16 +265,16 @@ var STARTER = {
 var SECS = [['schedule', 'Weekly schedule'], ['experiments', 'Experiments'], ['workflow', 'Workflow'], ['assessment', 'Assessment'], ['rules', 'Rules']];
 function settings() {
   if (getAt('design.themeToggle') === undefined) { C.design = C.design || {}; C.design.themeToggle = true; }
-  if (getAt('footer.credit') === undefined) { C.footer = C.footer || {}; C.footer.credit = true; }
-  var html = '<h2>Settings</h2>' +
-    '<h3>Course</h3>' + field('course.faculty', 'Faculty') + field('course.institution', 'Institution') + field('course.semester', 'Semester') + field('course.venue', 'Venue') +
+  if (getAt('footer.credit') === undefined) { C.footer = C.footer || {}; C.footer.credit = false; }
+  var html = '<h2>Page setup</h2>' +
+    '<h3>Course</h3>' +
     '<label for="f-course.language">Page language</label><select id="f-course.language" data-f="course.language"><option value="en">English</option><option value="ms">Bahasa Melayu</option></select>' +
-    '<h3>Appearance</h3>' + '<label for="f-design.theme">Theme</label><select id="f-design.theme" data-f="design.theme"><option value="light">Light</option><option value="dark">Dark emerald</option></select>' + field('design.accent', 'Main colour (e.g. #0F766E; in Dark emerald the default is mint)') +
+    '<h3>Appearance</h3>' + '<label for="f-design.theme">Theme</label><select id="f-design.theme" data-f="design.theme"><option value="light">Light</option><option value="dark">Dark emerald</option></select>' +
     '<label for="f-design.hero.style">Banner style</label><select id="f-design.hero.style" data-f="design.hero.style"><option value="art">Illustration</option><option value="image">Image</option><option value="none">None</option></select>' +
-    field('design.hero.image', 'Banner image file (e.g. assets/banner.jpg)') + field('design.hero.alt', 'Image description (for screen readers)') +
-    '<h3>Lecturer</h3>' + field('lecturer.role', 'Position') + field('lecturer.affiliation', 'Affiliation') + field('lecturer.email', 'Email', 'email') + field('lecturer.photo', 'Photo file (e.g. assets/lecturer.jpg)') + field('lecturer.introVideo', 'Video link (embed)', 'url') +
+    '<div data-imgfields>' + field('design.hero.image', 'Banner image file (e.g. assets/banner.jpg)') + field('design.hero.alt', 'Image description (for screen readers)') + '</div>' +
+    '<h3>Lecturer</h3>' + field('lecturer.email', 'Email', 'email') + field('lecturer.photo', 'Photo file (e.g. assets/lecturer.jpg)') + field('lecturer.introVideo', 'Video link (embed)', 'url') +
     '<h3>Sections shown</h3>' + SECS.map(function (s) { return check('sections.' + s[0], s[1]); }).join('') +
-    '<h3>Links</h3><div id="lkbox"></div>' +
+    '<h3>Link addresses</h3><p style="font-size:13px;margin:0 0 8px;color:#475569">Write each web address once here. On the page, click the link icon on a card or step to choose it.</p><div id="lkbox"></div>' +
     '<h3>Other</h3>' + field('analytics.goatcounter', 'GoatCounter code (leave empty if unused)') + check('feedback.enabled', 'Show the "was this page helpful?" question') + field('footer.text', 'Footer text (empty = automatic)') + check('design.themeToggle', 'Show the light/dark button in the header (students choose; their choice is saved in their browser)') + check('footer.credit', 'Show the small template credit in the footer (Rahida Wati Sharudin, FKK, UiTM)') +
     '<h3>PrepWISE (optional)</h3>' + check('prepwise.enabled', 'Enable PrepWISE card') + field('prepwise.url', 'URL', 'url') + field('prepwise.label', 'Label') + field('prepwise.text', 'Description') +
     '<p class="row" style="margin-top:18px"><button type="button" class="clp-btn pri" data-close>Done</button></p>';
@@ -280,10 +282,14 @@ function settings() {
   var sel = $('[data-f="course.language"]', o.pan); sel.value = getAt('course.language') === 'ms' ? 'ms' : 'en';
   var th = $('[data-f="design.theme"]', o.pan); th.value = getAt('design.theme') === 'dark' ? 'dark' : 'light';
   var hs = $('[data-f="design.hero.style"]', o.pan); hs.value = getAt('design.hero.style') || 'art';
+  var imgBox = $('[data-imgfields]', o.pan);
+  function showImg() { imgBox.hidden = hs.value !== 'image'; }
+  hs.addEventListener('change', showImg); showImg();
   $$('[data-f]', o.pan).forEach(function (el) {
     el.addEventListener('change', function () {
       var p = el.getAttribute('data-f'), v = el.value.trim();
       if (el.tagName === 'INPUT' && v === '') delAt(p); else setAt(p, v);
+      if (p === 'design.theme' && P.resetTheme) P.resetTheme();
       mark(p); refresh();
     });
   });
