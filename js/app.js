@@ -107,7 +107,7 @@ function rgbOf(h) { h = h.replace('#', ''); if (h.length === 3) h = h.split('').
 function lum(c) { var a = c.map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2]; }
 function ratio(a, b) { var hi = Math.max(a, b), lo = Math.min(a, b); return (hi + 0.05) / (lo + 0.05); }
 function hex(c) { return '#' + c.map(function (v) { return ('0' + v.toString(16)).slice(-2); }).join(''); }
-function themeToggleOn() { return !EDIT && !(C.design && C.design.themeToggle === false); }
+function themeToggleOn() { return !(C.design && C.design.themeToggle === false); }
 function isDarkNow() { return document.documentElement.getAttribute('data-theme') === 'dark'; }
 function themeBtn() {
   if (!themeToggleOn()) return '';
@@ -277,7 +277,7 @@ function renderHero(g, cur) {
     '<a class="btn ghost" href="#links">' + esc(t('quickLinks')) + '</a>';
   var h = '<section class="' + cls + '" id="home" aria-labelledby="h1"' + (style === 'image' ? ' data-img="' + esc(safeUrl(hero.image)) + '"' : '') + '><div class="wrap"><div class="hero-text">' +
     '<p class="welcome"' + dp('course.welcome', 'Greeting') + '>' + esc(co.welcome || t('welcome')) + '</p><p class="code"' + dp('course.code', 'Course code') + '>' + esc(co.code) + '</p><h1 id="h1"' + dp('course.title', 'Course title') + '>' + esc(co.title) + '</h1>' +
-    ((co.faculty || co.institution) ? '<p class="fac">' + esc([co.faculty, co.institution].filter(Boolean).join(' · ')) + '</p>' : '') +
+    ((co.faculty || co.institution || EDIT) ? '<p class="fac"><span' + dp('course.faculty', 'Faculty') + '>' + esc(co.faculty || '') + '</span>' + ((co.faculty && co.institution) || EDIT ? ' · ' : '') + '<span' + dp('course.institution', 'Institution') + '>' + esc(co.institution || '') + '</span></p>' : '') +
     ((co.lead || EDIT) ? '<p class="lead"' + dp('course.lead', 'Intro sentence') + '>' + esc(co.lead || '') + '</p>' : '') + '<div class="cta">' + cta + '</div></div>' +
     (style === 'image' ? '' : '<div class="hero-art">' + (style === 'art' ? heroArt() : '') + '</div>') + '</div>';
   h += renderStrip(g, cur) + '</section>';
@@ -287,9 +287,9 @@ function renderStrip(g, cur) {
   var co = C.course, items = [];
   if (g) { items.push([t('classGroup'), g.id]); items.push([t('session'), [g.day, g.time].filter(Boolean).join(', ')]); }
   else { items.push([t('code'), co.code]); if (co.session) items.push([t('session'), co.session]); }
-  if (co.venue) items.push([t('venue'), co.venue]);
-  if (co.semester) items.push([t('semester'), co.semester]);
-  var h = '<div class="strip">' + items.map(function (i) { return '<div><div class="l">' + esc(i[0]) + '</div><div class="v">' + esc(i[1]) + '</div></div>'; }).join('');
+  if (co.venue || EDIT) items.push([t('venue'), co.venue || '', 'course.venue']);
+  if (co.semester || EDIT) items.push([t('semester'), co.semester || '', 'course.semester']);
+  var h = '<div class="strip">' + items.map(function (i) { return '<div><div class="l">' + esc(i[0]) + '</div><div class="v"' + (i[2] ? dp(i[2], i[0]) : '') + '>' + esc(i[1]) + '</div></div>'; }).join('');
   if (g && sectionsOn.indexOf('schedule') > -1) h += weekCard(g, cur);
   return h + '</div>';
 }
@@ -444,7 +444,7 @@ function renderLecturer() {
   var ph = '<div class="ph" id="ph" role="img" aria-label="' + esc(t('photoOf') + ' ' + l.name) + '">' + (photo ? '<img src="' + esc(photo) + '" alt="" onerror="this.remove()">' : '') + '<span aria-hidden="true">' + esc(initials(l.name)) + '</span></div>';
   if (photo) ph = ph.replace('<span aria-hidden="true">', '<span aria-hidden="true" class="ini">');
   var card = '<div class="lec-card">' + ph + '<div><span class="tag">' + esc(t('courseLecturer')) + '</span><h3' + dp('lecturer.name', 'Lecturer name') + '>' + esc(l.name) + '</h3>' +
-    ((l.role || l.affiliation) ? '<p>' + esc([l.role, l.affiliation].filter(Boolean).join(' · ')) + '</p>' : '') + (l.email ? '<a href="mailto:' + esc(l.email) + '" data-track="email-lecturer">' + esc(l.email) + '</a>' : '') + '</div></div>';
+    ((l.role || l.affiliation || EDIT) ? '<p><span' + dp('lecturer.role', 'Position') + '>' + esc(l.role || '') + '</span>' + ((l.role && l.affiliation) || EDIT ? ' · ' : '') + '<span' + dp('lecturer.affiliation', 'Affiliation') + '>' + esc(l.affiliation || '') + '</span></p>' : '') + (l.email ? '<a href="mailto:' + esc(l.email) + '" data-track="email-lecturer">' + esc(l.email) + '</a>' : '') + '</div></div>';
   var v = vid ? '<div class="vid"><iframe title="' + esc(t('videoTitle')) + '" src="' + esc(vid) + '" allow="fullscreen" allowfullscreen loading="lazy"></iframe></div>' : '';
   var sup = Array.isArray(C.support) ? C.support : [];
   var tubes = (sup.length || EDIT) ? '<div class="tubes"' + dl('support') + '>' + sup.map(function (s, i) {
@@ -458,7 +458,7 @@ function renderLecturer() {
 function renderFooter() {
   var co = C.course, txt = (C.footer && C.footer.text) || [co.code + ' ' + co.title, [co.faculty, co.institution].filter(Boolean).join(', '), co.semester].filter(Boolean).join(' · ');
   var F = C.footer || {}, credit = '';
-  if (F.credit !== false) {
+  if (F.credit === true) {
     var ctext = F.creditText || t('creditBy'), curl = safeUrl(F.creditUrl || 'https://doi.org/10.5281/zenodo.24213008');
     credit = '<p class="credit">' + (curl ? '<a href="' + esc(curl) + '" target="_blank" rel="noopener">' + esc(ctext) + '</a>' : esc(ctext)) + '</p>';
   }
@@ -552,7 +552,8 @@ window.__clp = {
   rerender: function () { var errs = validate(); if (errs.length) return errs; setup(); render(); return []; },
   validate: validate, warnings: function () { return warnings; }, resolve: resolve,
   anchors: function () { return ['#home', '#start', '#links'].concat(sectionsOn.map(function (k) { return '#' + k; }), ['#lecturer']); },
-  iso: iso, str: function () { return T; }
+  iso: iso, str: function () { return T; },
+  resetTheme: function () { try { window.localStorage.removeItem(slug(C.course.code) + ':theme'); } catch (e) {} }
 };
 function loadEditor() {
   if (window.__clpLoaded) return;
