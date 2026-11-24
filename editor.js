@@ -27,7 +27,7 @@ function mark(path) { dirty[path || ('#' + Math.random())] = 1; updateStatus(); 
 function snapshot() { undoSnap = JSON.stringify(C); }
 function count() { return Object.keys(dirty).length; }
 var T = {
-  ms: { edit: 'Mod sunting', changes: 'perubahan belum dimuat turun', none: 'Tiada perubahan', settings: 'Tetapan', schedule: 'Panel jadual', check: 'Semak', download: (window.__clpSource === 'js' ? 'Muat turun content.js' : 'Muat turun content.json'), exit: 'Keluar', add: '+ Tambah', remove: 'Padam', link: 'Pautan', undo: 'Buat asal', close: 'Tutup' }
+  ms: { edit: 'Edit mode', changes: 'unsaved changes', none: 'No changes', settings: 'Settings', schedule: 'Schedule panel', check: 'Check', download: (window.__clpSource === 'js' ? 'Download content.js' : 'Download content.json'), exit: 'Exit', add: '+ Add', remove: 'Delete', link: 'Link', undo: 'Undo', close: 'Close' }
 };
 function tr(k) { return T.ms[k] || k; }
 
@@ -42,10 +42,21 @@ css.textContent = [
 '#clp-bar button,.clp-btn{font:inherit;border:1px solid #fff6;background:transparent;color:#fff;border-radius:8px;padding:7px 11px;cursor:pointer;white-space:nowrap}',
 '#clp-bar button.pri{background:#fff;color:#12263F;font-weight:700}',
 '#clp-bar button:focus-visible,.clp-btn:focus-visible,.clp-x:focus-visible,.clp-add:focus-visible{outline:3px solid #FCD9A0;outline-offset:2px}',
-'[data-p]{outline:1px dashed #0F766E88;outline-offset:2px;border-radius:3px;min-width:2ch;cursor:text}',
-'[data-p]:empty::before{content:attr(aria-label);opacity:.5;font-style:italic}',
-'[data-p]:hover{background:#0F766E14}[data-p]:focus{outline:2px solid #0F766E;background:#fff8}',
-'[data-item]{position:relative}',
+'#app [data-p]{outline:1px dashed #0F766E88;outline-offset:2px;border-radius:3px;min-width:2ch;cursor:text}',
+'#app [data-p]:empty::before{content:attr(aria-label);opacity:.5;font-style:italic}',
+'#app [data-p]:hover{background:#0F766E14}#app [data-p]:focus{outline:2px solid #0F766E;background:#fff8}',
+'#app [data-item]{position:relative}',
+'.clp-note{box-sizing:border-box;border-radius:10px;padding:8px 10px;font:12.5px/1.45 system-ui,sans-serif;max-width:100%}',
+'.clp-note b{display:block;font-weight:700;margin-bottom:2px}',
+'.clp-note.dir{background:#DCFCE7;color:#14532D;border:1px solid #86EFAC}',
+'.clp-note.auto{background:#DBEAFE;color:#1E3A8A;border:1px solid #93C5FD}',
+'.clp-note.mix{background:#FEF3C7;color:#78350F;border:1px solid #FCD34D}',
+'.clp-note button{font:inherit;margin-top:5px;margin-right:4px;border:1px solid currentColor;background:#fff;color:inherit;border-radius:6px;padding:2px 9px;cursor:pointer}',
+'.clp-note button:focus-visible{outline:3px solid #12263F;outline-offset:2px}',
+'#app .head{display:grid;grid-template-columns:minmax(0,1fr) 240px;column-gap:18px;align-items:start}#app .head>*{grid-column:1}#app .head>.clp-note{grid-column:2;grid-row:1/span 3}',
+'main>.clp-note.nb{max-width:calc(var(--max) - 96px);margin:10px auto;width:calc(100% - 96px);display:block}@media (max-width:760px){main>.clp-note.nb{width:calc(100% - 32px)}}',
+'body.clp-nonotes .clp-note{display:none!important}',
+'@media (max-width:760px){#app .head{display:block}#app .head>.clp-note{margin:0 0 10px}}',
 '.clp-x,.clp-lk{position:absolute;top:-10px;z-index:5;width:28px;height:28px;border-radius:50%;border:1px solid #0003;background:#fff;color:#12263F;cursor:pointer;font:16px/1 system-ui;display:grid;place-items:center;padding:0}',
 '.clp-x{right:-8px;color:#B91C1C}.clp-lk{right:26px}',
 '.clp-add{display:inline-block;margin:10px 0;padding:8px 14px;border:2px dashed #0F766E;border-radius:10px;background:#fff;color:#0F766E;cursor:pointer;font:600 14px system-ui}',
@@ -70,9 +81,9 @@ document.head.appendChild(css);
 
 /* ---------- bar ---------- */
 var bar = document.createElement('div');
-bar.id = 'clp-bar'; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Mod sunting');
+bar.id = 'clp-bar'; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Edit mode');
 bar.innerHTML = '<b>' + tr('edit') + '</b><span class="st" id="clp-st" role="status" aria-live="polite"></span><span class="sp"></span>' +
-  '<button type="button" data-a="settings">' + tr('settings') + '</button><button type="button" data-a="schedule">' + tr('schedule') + '</button><button type="button" data-a="assess">Panel penilaian</button><button type="button" data-a="check">' + tr('check') + '</button>' +
+  '<button type="button" data-a="settings">' + tr('settings') + '</button><button type="button" data-a="schedule">' + tr('schedule') + '</button><button type="button" data-a="assess">Assessment panel</button><button type="button" data-a="check">' + tr('check') + '</button><button type="button" data-a="notes" aria-pressed="false">Hide notes</button>' +
   '<button type="button" class="pri" data-a="download">' + tr('download') + '</button><button type="button" data-a="exit">' + tr('exit') + '</button>';
 document.body.insertBefore(bar, document.body.firstChild);
 var toast = document.createElement('div'); toast.id = 'clp-toast'; toast.setAttribute('role', 'status'); document.body.appendChild(toast);
@@ -91,7 +102,7 @@ function replaceC(n) { var o = P.get(); Object.keys(o).forEach(function (k) { de
 function refresh(keepFocus) {
   var y = window.scrollY, errs = P.rerender();
   window.scrollTo(0, y);
-  if (errs.length) say('Ada ralat: ' + errs[0]);
+  if (errs.length) say('Error: ' + errs[0]);
   return errs;
 }
 var rt = null;
@@ -109,7 +120,7 @@ app.addEventListener('input', function (e) {
 app.addEventListener('focusout', function (e) {
   var el = e.target.closest && e.target.closest('[data-p]'); if (!el) return;
   var path = el.getAttribute('data-p');
-  if (REQUIRED[path] && el.textContent.trim() === '') { el.textContent = getAt(path) || ''; say('Medan ini wajib diisi.'); }
+  if (REQUIRED[path] && el.textContent.trim() === '') { el.textContent = getAt(path) || ''; say('This field is required.'); }
   if (dirty[path]) refreshSoon();
 });
 app.addEventListener('keydown', function (e) {
@@ -141,11 +152,11 @@ function decorate() {
   $$('[data-item]', app).forEach(function (it) {
     var path = it.getAttribute('data-item'), lp = listOf(path), idx = +path.split('.').pop();
     var x = document.createElement('button'); x.type = 'button'; x.className = 'clp-x'; x.textContent = '×';
-    x.setAttribute('aria-label', tr('remove') + ' ' + (getAt(path + '.title') || path)); x.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); snapshot(); listAt(lp).splice(idx, 1); structural++; updateStatus(); refresh(); say('Item dipadam.', true); });
+    x.setAttribute('aria-label', tr('remove') + ' ' + (getAt(path + '.title') || path)); x.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); snapshot(); listAt(lp).splice(idx, 1); structural++; updateStatus(); refresh(); say('Item deleted.', true); });
     it.appendChild(x);
     if (LINKABLE[lp]) {
       var l = document.createElement('button'); l.type = 'button'; l.className = 'clp-lk'; l.textContent = '🔗';
-      l.setAttribute('aria-label', tr('link') + ': ' + (getAt(path + '.title') || path)); l.title = 'Pautan: ' + (getAt(path + '.link') || 'tiada');
+      l.setAttribute('aria-label', tr('link') + ': ' + (getAt(path + '.title') || path)); l.title = 'Link: ' + (getAt(path + '.link') || 'none');
       l.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); linkPicker(path); });
       it.appendChild(l);
     }
@@ -163,7 +174,34 @@ function decorate() {
     ul.insertAdjacentElement('afterend', b);
   });
 }
-P.afterRender = decorate;
+var NOTES = {
+  home: ['dir', 'Edit here', 'Click the title, code, greeting and intro sentence. Banner style and image: Settings.', [['settings', 'Open Settings']]],
+  start: ['dir', 'Edit here', 'Click a step to edit it. Use the link icon on a step to choose where its button goes.'],
+  links: ['mix', 'Edit here + Settings', 'Titles and hints are edited here. The link addresses are kept in Settings, under Links.', [['settings', 'Open Settings']]],
+  schedule: ['auto', 'Automatic', 'The weekly tiles are built from the Schedule panel. Only the section title and intro are edited here.', [['schedule', 'Open Schedule panel']]],
+  experiments: ['auto', 'Automatic', 'Lab names and CE/OE come from the Schedule panel, Experiments tab. Dates come from the schedule.', [['experiments', 'Open Experiments']]],
+  workflow: ['dir', 'Edit here', 'Click any step title or text. Add or remove steps with the small buttons.'],
+  assessment: ['auto', 'Automatic', 'Percentages, report cards and rubrics come from the Assessment panel. Titles and short descriptions can be edited here.', [['assess', 'Open Assessment panel']]],
+  rules: ['dir', 'Edit here', 'Click a rule or support item to edit it. Add or remove items with the small buttons.'],
+  lecturer: ['mix', 'Edit here + Settings', 'The name is edited here. Position, email, photo and video: Settings.', [['settings', 'Open Settings']]]
+};
+function notes() {
+  Object.keys(NOTES).forEach(function (id) {
+    var sec = $('#' + id, app); if (!sec || $('.clp-note', sec) || (sec.previousElementSibling && sec.previousElementSibling.classList.contains('clp-note'))) return;
+    var n = NOTES[id], d = document.createElement('aside'), head = $('.head', sec), wrap = $('.wrap', sec);
+    d.className = 'clp-note ' + n[0] + (head ? '' : ' nb'); d.setAttribute('role', 'note'); d.setAttribute('contenteditable', 'false');
+    d.innerHTML = '<b>' + n[1] + '</b>' + esc(n[2]) + (n[3] ? '<br>' + n[3].map(function (x) { return '<button type="button" data-open="' + x[0] + '">' + x[1] + '</button>'; }).join('') : '');
+    if (head) head.insertBefore(d, head.firstChild); else sec.parentNode.insertBefore(d, sec);
+  });
+}
+app.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-open]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  var w = b.getAttribute('data-open');
+  if (w === 'settings') settings(); else if (w === 'schedule') schedulePanel(); else if (w === 'experiments') schedulePanel('exp'); else if (w === 'assess') assessmentPanel();
+}, true);
+var decorate0 = decorate; decorate = function () { decorate0(); notes(); };
+P.afterRender = function () { decorate(); };
 decorate();
 
 /* ---------- overlay helper ---------- */
@@ -188,17 +226,17 @@ function overlay(html, mid, onClose) {
 /* ---------- link picker ---------- */
 function linkPicker(itemPath) {
   var cur = getAt(itemPath + '.link') || '', keys = Object.keys(C.links || {}), anchors = P.anchors();
-  var opts = [['', '(Tiada pautan)']];
+  var opts = [['', '(No link)']];
   keys.forEach(function (k) { opts.push([k, k + ' → ' + C.links[k]]); });
-  if (C.lecturer && C.lecturer.email) opts.push(['email', 'E-mel pensyarah']);
-  anchors.forEach(function (a) { opts.push([a, 'Bahagian ' + a]); });
+  if (C.lecturer && C.lecturer.email) opts.push(['email', 'Lecturer email']);
+  anchors.forEach(function (a) { opts.push([a, 'Section ' + a]); });
   var known = opts.some(function (o) { return o[0] === cur; });
-  var html = '<h2>Pilih pautan</h2><fieldset style="border:0;padding:0;margin:0">' + opts.map(function (o, i) {
+  var html = '<h2>Choose link</h2><fieldset style="border:0;padding:0;margin:0">' + opts.map(function (o, i) {
     return '<label class="clp-chk"><input type="radio" name="lk" value="' + esc(o[0]) + '"' + (o[0] === cur ? ' checked' : '') + '> ' + esc(o[1]) + '</label>';
-  }).join('') + '<label class="clp-chk"><input type="radio" name="lk" value="__custom"' + (!known ? ' checked' : '') + '> URL lain:</label></fieldset>' +
+  }).join('') + '<label class="clp-chk"><input type="radio" name="lk" value="__custom"' + (!known ? ' checked' : '') + '> Other URL:</label></fieldset>' +
     '<input type="url" id="lk-custom" placeholder="https://..." value="' + (!known ? esc(cur) : '') + '">' +
-    '<label for="lk-label">Teks butang (pilihan)</label><input type="text" id="lk-label" value="' + esc(getAt(itemPath + '.label') || '') + '">' +
-    '<p class="row" style="margin-top:14px"><button type="button" class="clp-btn pri" data-ok>Simpan</button><button type="button" class="clp-btn" data-close>Batal</button></p>';
+    '<label for="lk-label">Button text (optional)</label><input type="text" id="lk-label" value="' + esc(getAt(itemPath + '.label') || '') + '">' +
+    '<p class="row" style="margin-top:14px"><button type="button" class="clp-btn pri" data-ok>Save</button><button type="button" class="clp-btn" data-close>Cancel</button></p>';
   var o = overlay(html, true);
   $('[data-ok]', o.pan).addEventListener('click', function () {
     var v = ($('input[name=lk]:checked', o.pan) || {}).value || '';
@@ -222,22 +260,25 @@ var STARTER = {
   assessment: function () { if (!C.assessment) C.assessment = { title: M('Penilaian', 'Assessment'), weights: [{ label: M('Ujian', 'Test'), percent: 50, detail: '' }, { label: M('Tugasan', 'Coursework'), percent: 50, detail: '' }] }; },
   rules: function () { if (!C.rules) C.rules = { title: M('Peraturan', 'Important rules'), items: [{ title: M('Peraturan pertama', 'First rule'), text: '' }] }; }
 };
-var SECS = [['schedule', 'Jadual mingguan'], ['experiments', 'Eksperimen'], ['workflow', 'Aliran kerja'], ['assessment', 'Penilaian'], ['rules', 'Peraturan']];
+var SECS = [['schedule', 'Weekly schedule'], ['experiments', 'Experiments'], ['workflow', 'Workflow'], ['assessment', 'Assessment'], ['rules', 'Rules']];
 function settings() {
-  var html = '<h2>Tetapan</h2>' +
-    '<h3>Kursus</h3>' + field('course.faculty', 'Fakulti') + field('course.institution', 'Institusi') + field('course.semester', 'Semester') + field('course.venue', 'Tempat') +
-    '<label for="f-course.language">Bahasa halaman</label><select id="f-course.language" data-f="course.language"><option value="en">English</option><option value="ms">Bahasa Melayu</option></select>' +
-    '<h3>Rupa</h3>' + field('design.accent', 'Warna utama (cth #0F766E)') +
-    '<label for="f-design.hero.style">Gaya banner</label><select id="f-design.hero.style" data-f="design.hero.style"><option value="art">Lukisan</option><option value="image">Gambar</option><option value="none">Tiada</option></select>' +
-    field('design.hero.image', 'Fail gambar banner (cth assets/banner.jpg)') + field('design.hero.alt', 'Penerangan gambar (untuk pembaca skrin)') +
-    '<h3>Pensyarah</h3>' + field('lecturer.role', 'Jawatan') + field('lecturer.affiliation', 'Afiliasi') + field('lecturer.email', 'E-mel', 'email') + field('lecturer.photo', 'Fail gambar (cth assets/lecturer.jpg)') + field('lecturer.introVideo', 'Pautan video (embed)', 'url') +
-    '<h3>Bahagian yang dipaparkan</h3>' + SECS.map(function (s) { return check('sections.' + s[0], s[1]); }).join('') +
-    '<h3>Pautan (links)</h3><div id="lkbox"></div>' +
-    '<h3>Lain-lain</h3>' + field('analytics.goatcounter', 'Kod GoatCounter (kosongkan jika tidak guna)') + check('feedback.enabled', 'Paparkan soalan "adakah halaman ini membantu?"') + field('footer.text', 'Teks kaki halaman (kosong = automatik)') +
-    '<h3>PrepWISE (pilihan)</h3>' + check('prepwise.enabled', 'Aktifkan kad PrepWISE') + field('prepwise.url', 'URL', 'url') + field('prepwise.label', 'Label') + field('prepwise.text', 'Penerangan') +
-    '<p class="row" style="margin-top:18px"><button type="button" class="clp-btn pri" data-close>Selesai</button></p>';
+  if (getAt('design.themeToggle') === undefined) { C.design = C.design || {}; C.design.themeToggle = true; }
+  if (getAt('footer.credit') === undefined) { C.footer = C.footer || {}; C.footer.credit = true; }
+  var html = '<h2>Settings</h2>' +
+    '<h3>Course</h3>' + field('course.faculty', 'Faculty') + field('course.institution', 'Institution') + field('course.semester', 'Semester') + field('course.venue', 'Venue') +
+    '<label for="f-course.language">Page language</label><select id="f-course.language" data-f="course.language"><option value="en">English</option><option value="ms">Bahasa Melayu</option></select>' +
+    '<h3>Appearance</h3>' + '<label for="f-design.theme">Theme</label><select id="f-design.theme" data-f="design.theme"><option value="light">Light</option><option value="dark">Dark emerald</option></select>' + field('design.accent', 'Main colour (e.g. #0F766E; in Dark emerald the default is mint)') +
+    '<label for="f-design.hero.style">Banner style</label><select id="f-design.hero.style" data-f="design.hero.style"><option value="art">Illustration</option><option value="image">Image</option><option value="none">None</option></select>' +
+    field('design.hero.image', 'Banner image file (e.g. assets/banner.jpg)') + field('design.hero.alt', 'Image description (for screen readers)') +
+    '<h3>Lecturer</h3>' + field('lecturer.role', 'Position') + field('lecturer.affiliation', 'Affiliation') + field('lecturer.email', 'Email', 'email') + field('lecturer.photo', 'Photo file (e.g. assets/lecturer.jpg)') + field('lecturer.introVideo', 'Video link (embed)', 'url') +
+    '<h3>Sections shown</h3>' + SECS.map(function (s) { return check('sections.' + s[0], s[1]); }).join('') +
+    '<h3>Links</h3><div id="lkbox"></div>' +
+    '<h3>Other</h3>' + field('analytics.goatcounter', 'GoatCounter code (leave empty if unused)') + check('feedback.enabled', 'Show the "was this page helpful?" question') + field('footer.text', 'Footer text (empty = automatic)') + check('design.themeToggle', 'Show the light/dark button in the header (students choose; their choice is saved in their browser)') + check('footer.credit', 'Show the small template credit in the footer (Rahida Wati Sharudin, FKK, UiTM)') +
+    '<h3>PrepWISE (optional)</h3>' + check('prepwise.enabled', 'Enable PrepWISE card') + field('prepwise.url', 'URL', 'url') + field('prepwise.label', 'Label') + field('prepwise.text', 'Description') +
+    '<p class="row" style="margin-top:18px"><button type="button" class="clp-btn pri" data-close>Done</button></p>';
   var o = overlay(html, false);
   var sel = $('[data-f="course.language"]', o.pan); sel.value = getAt('course.language') === 'ms' ? 'ms' : 'en';
+  var th = $('[data-f="design.theme"]', o.pan); th.value = getAt('design.theme') === 'dark' ? 'dark' : 'light';
   var hs = $('[data-f="design.hero.style"]', o.pan); hs.value = getAt('design.hero.style') || 'art';
   $$('[data-f]', o.pan).forEach(function (el) {
     el.addEventListener('change', function () {
@@ -257,20 +298,20 @@ function settings() {
   });
   function drawLinks() {
     var box = $('#lkbox', o.pan), keys = Object.keys(C.links || {});
-    box.innerHTML = keys.map(function (k) { return '<div class="row"><code style="flex:0 0 120px">' + esc(k) + '</code><input type="url" data-lk="' + esc(k) + '" value="' + esc(C.links[k]) + '" aria-label="URL ' + esc(k) + '"><button type="button" class="clp-btn" style="flex:0 0 auto" data-rm="' + esc(k) + '" aria-label="Padam ' + esc(k) + '">×</button></div>'; }).join('') +
-      '<div class="row" style="margin-top:8px"><input type="text" id="nk" placeholder="nama (cth silibus)" aria-label="Nama pautan baharu"><input type="url" id="nu" placeholder="https://..." aria-label="URL pautan baharu"><button type="button" class="clp-btn" style="flex:0 0 auto" id="nadd">+ Tambah</button></div><p class="clp-warn" id="lkmsg"></p>';
+    box.innerHTML = keys.map(function (k) { return '<div class="row"><code style="flex:0 0 120px">' + esc(k) + '</code><input type="url" data-lk="' + esc(k) + '" value="' + esc(C.links[k]) + '" aria-label="URL ' + esc(k) + '"><button type="button" class="clp-btn" style="flex:0 0 auto" data-rm="' + esc(k) + '" aria-label="Delete ' + esc(k) + '">×</button></div>'; }).join('') +
+      '<div class="row" style="margin-top:8px"><input type="text" id="nk" placeholder="name (e.g. syllabus)" aria-label="New link name"><input type="url" id="nu" placeholder="https://..." aria-label="New link URL"><button type="button" class="clp-btn" style="flex:0 0 auto" id="nadd">+ Add</button></div><p class="clp-warn" id="lkmsg"></p>';
     $$('[data-lk]', box).forEach(function (i) { i.addEventListener('change', function () { C.links[i.getAttribute('data-lk')] = i.value.trim(); mark('links.' + i.getAttribute('data-lk')); refresh(); }); });
     $$('[data-rm]', box).forEach(function (b) { b.addEventListener('click', function () {
       var k = b.getAttribute('data-rm'), used = JSON.stringify(C).split('"' + k + '"').length - 1 - 1;
       var refs = JSON.stringify(C, function (kk, v) { return kk === 'links' ? undefined : v; }).split('"' + k + '"').length - 1;
-      if (refs) { $('#lkmsg', box).textContent = 'Pautan "' + k + '" masih digunakan di ' + refs + ' tempat. Tukar pautan itu dahulu.'; return; }
+      if (refs) { $('#lkmsg', box).textContent = 'Link "' + k + '" is still used in ' + refs + ' place(s). Change those first.'; return; }
       snapshot(); delete C.links[k]; structural++; updateStatus(); drawLinks(); refresh();
     }); });
     $('#nadd', box).addEventListener('click', function () {
       var k = $('#nk', box).value.trim(), u = $('#nu', box).value.trim();
-      if (!/^[A-Za-z][\w-]*$/.test(k)) { $('#lkmsg', box).textContent = 'Nama mesti huruf/angka tanpa ruang (cth silibus).'; return; }
-      if (C.links[k]) { $('#lkmsg', box).textContent = 'Nama itu sudah ada.'; return; }
-      if (!/^https?:\/\//i.test(u)) { $('#lkmsg', box).textContent = 'URL mesti bermula dengan https://'; return; }
+      if (!/^[A-Za-z][\w-]*$/.test(k)) { $('#lkmsg', box).textContent = 'Name must be letters/numbers without spaces (e.g. syllabus).'; return; }
+      if (C.links[k]) { $('#lkmsg', box).textContent = 'That name already exists.'; return; }
+      if (!/^https?:\/\//i.test(u)) { $('#lkmsg', box).textContent = 'URL must start with https://'; return; }
       snapshot(); C.links[k] = u; structural++; updateStatus(); drawLinks(); refresh();
     });
   }
@@ -279,57 +320,64 @@ function settings() {
 
 /* ---------- schedule panel ---------- */
 var DAYS = { sunday: 0, ahad: 0, monday: 1, isnin: 1, tuesday: 2, selasa: 2, wednesday: 3, rabu: 3, thursday: 4, khamis: 4, friday: 5, jumaat: 5, saturday: 6, sabtu: 6 };
-var DAYMS = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
-var TYPES = [['brief', 'Taklimat'], ['lab', 'Makmal'], ['consult', 'Konsultasi'], ['submit', 'Hantar laporan'], ['test', 'Ujian'], ['break', 'Cuti / rehat'], ['other', 'Lain-lain']];
+var DAYMS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+var TYPES = [['brief', 'Briefing'], ['lab', 'Lab'], ['consult', 'Consultation'], ['submit', 'Report submission'], ['test', 'Test'], ['break', 'Break / holiday'], ['other', 'Other']];
 function addDays(s, n) { var d = P.iso(s); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
 function wd(s) { var d = P.iso(s); return isNaN(d.getTime()) ? -1 : d.getDay(); }
-function schedulePanel() {
+function schedulePanel(t0) {
   if (!C.schedule) { STARTER.schedule(); }
-  var S = C.schedule, tab = 'g:0', o;
+  var S = C.schedule, tab = t0 || 'g:0', o;
   function groupsOf() { return S.groups; }
+  function PL(g) { return Array.isArray(g.plan) ? g.plan : S.plan; }
+  function affected(g) { return Array.isArray(g.plan) ? [g] : S.groups.filter(function (x) { return !Array.isArray(x.plan); }); }
+  function allPlans() { var a = [S.plan]; S.groups.forEach(function (x) { if (Array.isArray(x.plan)) a.push(x.plan); }); return a; }
   function render() {
     var gi = tab.indexOf('g:') === 0 ? +tab.slice(2) : -1, g = S.groups[gi];
-    var html = '<h2>Panel jadual</h2><div class="clp-tabs" role="tablist">' +
+    var html = '<h2>Schedule panel</h2><div class="clp-tabs" role="tablist">' +
       S.groups.map(function (x, i) { return '<button type="button" role="tab" data-tab="g:' + i + '" aria-selected="' + (tab === 'g:' + i) + '">' + esc(x.id || ('Kumpulan ' + (i + 1))) + '</button>'; }).join('') +
-      '<button type="button" data-addg>+ Kumpulan</button><button type="button" role="tab" data-tab="exp" aria-selected="' + (tab === 'exp') + '">Eksperimen</button></div>';
+      '<button type="button" data-addg>+ Group</button><button type="button" role="tab" data-tab="exp" aria-selected="' + (tab === 'exp') + '">Experiments</button></div>';
     if (tab === 'exp') html += expHtml(); else if (g) html += groupHtml(g, gi);
-    html += '<p class="row" style="margin-top:16px"><button type="button" class="clp-btn pri" data-close>Selesai</button></p>';
+    html += '<p class="row" style="margin-top:16px"><button type="button" class="clp-btn pri" data-close>Done</button></p>';
     var keep = o ? o.pan.scrollTop : 0;
     if (o) { o.pan.innerHTML = html; } else { o = overlay(html, true, function () { refresh(); }); }
     o.pan.scrollTop = keep; wire(gi, g);
   }
   function groupHtml(g, gi) {
-    var meta = '<div class="row"><div><label for="g-id">ID kumpulan</label><input type="text" id="g-id" data-g="id" value="' + esc(g.id) + '"></div><div><label for="g-day">Hari</label><input type="text" id="g-day" data-g="day" value="' + esc(g.day || '') + '"></div><div><label for="g-time">Masa</label><input type="text" id="g-time" data-g="time" value="' + esc(g.time || '') + '"></div><div><label for="g-tt">Pautan jadual rasmi</label><select id="g-tt" data-g="timetable"><option value="">(tiada)</option>' + Object.keys(C.links || {}).map(function (k) { return '<option' + (g.timetable === k ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></div></div>';
+    var meta = '<div class="row"><div><label for="g-id">Group ID</label><input type="text" id="g-id" data-g="id" value="' + esc(g.id) + '"></div><div><label for="g-day">Day</label><input type="text" id="g-day" data-g="day" value="' + esc(g.day || '') + '"></div><div><label for="g-time">Time</label><input type="text" id="g-time" data-g="time" value="' + esc(g.time || '') + '"></div><div><label for="g-tt">Official timetable link</label><select id="g-tt" data-g="timetable"><option value="">(none)</option>' + Object.keys(C.links || {}).map(function (k) { return '<option' + (g.timetable === k ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></div></div>';
     var others = S.groups.map(function (x, i) { return i === gi ? '' : '<option value="' + i + '">' + esc(x.id) + '</option>'; }).join('');
-    var tools = '<div class="row" style="margin:10px 0"><button type="button" class="clp-btn" data-fill>Isi tarikh mingguan dari baris pertama</button>' + (others ? '<span class="row" style="flex:2"><select data-copyfrom aria-label="Salin dari kumpulan">' + others + '</select><input type="text" data-copyn value="3" style="max-width:70px" aria-label="Tambah hari"> <button type="button" class="clp-btn" data-copy>Salin tarikh (+hari)</button></span>' : '') + '<button type="button" class="clp-btn" data-delg>Padam kumpulan ini</button></div>';
-    var expOpts = '<option value="">—</option>' + (C.experiments && C.experiments.items || []).map(function (e, i) { return '<option value="' + (i + 1) + '">' + (i + 1) + '. ' + esc(e.short || e.name) + '</option>'; }).join('');
-    var rows = S.plan.map(function (p, i) {
+    var tools = '<div class="row" style="margin:10px 0"><button type="button" class="clp-btn" data-fill>Fill weekly dates from the first row</button><button type="button" class="clp-btn" data-delg>Delete this group</button></div>' +
+      (others ? '<div class="row" style="margin:6px 0;align-items:center"><span style="flex:0 0 auto">Copy all dates from</span><select data-copyfrom aria-label="Copy dates from group" style="flex:0 1 160px">' + others + '</select><span style="flex:0 0 auto">and add</span><input type="text" data-copyn value="3" style="max-width:60px" aria-label="Days to add"><span style="flex:0 0 auto">days</span><button type="button" class="clp-btn" data-copy>Copy dates</button></div>' : '<p class="clp-warn">To add another class group, click "+ Group" above, then rename it in "Group ID".</p>');
+    var expOpts = '<option value="">—</option>' + (C.experiments && C.experiments.items || []).map(function (e, i) { return '<option value="' + (i + 1) + '">' + esc((C.experiments.word || 'Lab') + ' ' + (i + 1)) + '</option>'; }).join('');
+    var lock = gi > 0 && !Array.isArray(g.plan);
+    var rows = PL(g).map(function (p, i) {
       var d = g.dates[i] || '', w = d ? wd(d) : -1, want = DAYS[String(g.day || '').toLowerCase()], warn = '';
-      if (d && want != null && w >= 0 && w !== want && !p.noDate) warn = '<div class="clp-warn">⚠ ' + DAYMS[w] + ', bukan ' + esc(g.day) + '</div>';
-      if (i > 0 && d && g.dates[i - 1] && d < g.dates[i - 1]) warn += '<div class="clp-warn">⚠ Sebelum baris atas</div>';
+      if (d && want != null && w >= 0 && w !== want && !p.noDate) warn = '<div class="clp-warn">⚠ ' + DAYMS[w] + ', not ' + esc(g.day) + '</div>';
+      if (i > 0 && d && g.dates[i - 1] && d < g.dates[i - 1]) warn += '<div class="clp-warn">⚠ Earlier than the row above</div>';
       var needExp = (p.type === 'lab' || p.type === 'consult');
-      return '<tr data-r="' + i + '"><td>' + (i + 1) + '</td><td><input type="text" data-p="week" value="' + (p.week == null ? '' : p.week) + '" style="width:48px" aria-label="Minggu baris ' + (i + 1) + '"></td>' +
-        '<td><select data-p="type" aria-label="Jenis baris ' + (i + 1) + '">' + TYPES.map(function (t) { return '<option value="' + t[0] + '"' + (p.type === t[0] ? ' selected' : '') + '>' + t[1] + '</option>'; }).join('') + '</select></td>' +
-        '<td>' + (needExp ? '<select data-p="experiment" aria-label="Eksperimen baris ' + (i + 1) + '">' + expOpts.replace('value="' + p.experiment + '"', 'value="' + p.experiment + '" selected') + '</select>' : '') + '</td>' +
-        '<td><select data-p="submit" aria-label="Hantar laporan baris ' + (i + 1) + '"><option value="">—</option>' + (C.experiments && C.experiments.items || []).map(function (e, k) { return '<option value="' + (k + 1) + '"' + (p.submit === k + 1 ? ' selected' : '') + '>Lap. ' + (k + 1) + '</option>'; }).join('') + '</select></td>' +
-        '<td>' + (p.type === 'other' ? '<input type="text" data-p="label" value="' + esc(p.label || '') + '" placeholder="Label (cth MTA)" aria-label="Label baris ' + (i + 1) + '" style="margin-bottom:3px">' : '') + '<input type="text" data-p="note" value="' + esc(p.note || '') + '" aria-label="Catatan baris ' + (i + 1) + '"></td>' +
-        '<td><input type="date" data-d value="' + esc(d) + '" aria-label="Tarikh baris ' + (i + 1) + '">' + warn + '</td>' +
-        '<td><input type="text" data-h value="' + esc((g.holidays && g.holidays[i]) || '') + '" placeholder="cuti?" style="width:90px" aria-label="Cuti baris ' + (i + 1) + '"></td>' +
-        '<td style="white-space:nowrap"><button type="button" class="clp-btn" data-ins="' + i + '" aria-label="Sisip baris selepas ' + (i + 1) + '">＋</button> <button type="button" class="clp-btn" data-del="' + i + '" aria-label="Padam baris ' + (i + 1) + '">×</button></td></tr>';
+      return '<tr data-r="' + i + '"><td>' + (i + 1) + '</td><td><input type="text" data-p="week" value="' + (p.week == null ? '' : p.week) + '" style="width:48px" aria-label="Week, row ' + (i + 1) + '"></td>' +
+        '<td><select data-p="type" aria-label="Type, row ' + (i + 1) + '">' + TYPES.map(function (t) { return '<option value="' + t[0] + '"' + (p.type === t[0] ? ' selected' : '') + '>' + t[1] + '</option>'; }).join('') + '</select></td>' +
+        '<td>' + (needExp ? '<select data-p="experiment" aria-label="Experiment, row ' + (i + 1) + '">' + expOpts.replace('value="' + p.experiment + '"', 'value="' + p.experiment + '" selected') + '</select>' + (p.experiment && C.experiments && C.experiments.items[p.experiment - 1] ? '<select data-p="exptype" aria-label="CE or OE, row ' + (i + 1) + '" style="margin-top:3px"><option value="CE"' + (!C.experiments.items[p.experiment - 1].openEnded ? ' selected' : '') + '>CE</option><option value="OE"' + (C.experiments.items[p.experiment - 1].openEnded ? ' selected' : '') + '>OE</option></select>' : '') : '') + '</td>' +
+        '<td><select data-p="submit" aria-label="Submit report, row ' + (i + 1) + '"><option value="">—</option>' + (C.experiments && C.experiments.items || []).map(function (e, k) { return '<option value="' + (k + 1) + '"' + (p.submit === k + 1 ? ' selected' : '') + '>Report ' + (k + 1) + '</option>'; }).join('') + '</select></td>' +
+        '<td>' + (p.type === 'other' ? '<input type="text" data-p="label" value="' + esc(p.label || '') + '" placeholder="Label (e.g. Midterm)" aria-label="Label, row ' + (i + 1) + '" style="margin-bottom:3px">' : '') + '<input type="text" data-p="note" value="' + esc(p.note || '') + '" aria-label="Note, row ' + (i + 1) + '"></td>' +
+        '<td><input type="date" data-d value="' + esc(d) + '" aria-label="Date, row ' + (i + 1) + '">' + warn + '</td>' +
+        '<td><input type="text" data-h value="' + esc((g.holidays && g.holidays[i]) || '') + '" placeholder="holiday?" style="width:90px" aria-label="Holiday, row ' + (i + 1) + '"></td>' +
+        '<td style="white-space:nowrap"><button type="button" class="clp-btn" data-ins="' + i + '" aria-label="Insert row after ' + (i + 1) + '">＋</button> <button type="button" class="clp-btn" data-del="' + i + '" aria-label="Delete row ' + (i + 1) + '">×</button></td></tr>';
     }).join('');
-    return meta + tools + '<div style="overflow:auto"><table><thead><tr><th>#</th><th>Mgg</th><th>Jenis</th><th>Eksp.</th><th>Hantar</th><th>Catatan</th><th>Tarikh</th><th>Cuti</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div><button type="button" class="clp-btn" data-addrow style="margin-top:8px">+ Tambah baris</button>';
+    if (lock) rows = rows.replace(/<select data-p=/g, '<select disabled data-p=').replace(/<input type="text" data-p=/g, '<input type="text" disabled data-p=').replace(/<td style="white-space:nowrap">.*?<\/td><\/tr>/g, '<td></td></tr>');
+    var own = gi > 0 ? '<label class="clp-chk" style="margin:8px 0"><input type="checkbox" data-own' + (Array.isArray(g.plan) ? ' checked' : '') + '> This group has its own order of sessions</label>' + (lock ? '<p class="clp-warn">Types and labs follow ' + esc(S.groups[0].id) + '. Only the dates can be changed here.</p>' : '') : '';
+    return meta + own + tools + '<p class="clp-warn">Choose the lab, then set it as CE (closed-ended, fixed procedure) or OE (open-ended, students plan their own). The choice applies to every row of the same lab.</p><div style="overflow:auto"><table><thead><tr><th>#</th><th>Wk</th><th>Type</th><th>Lab</th><th>Submit report</th><th>Note</th><th>Date</th><th>Holiday</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' + (lock ? '' : '<button type="button" class="clp-btn" data-addrow style="margin-top:8px">+ Add row</button>');
   }
   function expHtml() {
     var items = (C.experiments && C.experiments.items) || [], rep = ((C.assessment && C.assessment.reports) || []).map(function (r) { return r.code; });
     var rows = items.map(function (e, i) {
-      return '<tr data-e="' + i + '"><td>' + (i + 1) + '</td><td><input type="text" data-k="name" value="' + esc(e.name) + '" aria-label="Nama eksperimen ' + (i + 1) + '"></td><td><input type="text" data-k="short" value="' + esc(e.short || '') + '" aria-label="Nama pendek ' + (i + 1) + '"></td>' +
-        '<td><select data-k="openEnded" aria-label="Jenis ' + (i + 1) + '"><option value="0"' + (!e.openEnded ? ' selected' : '') + '>Closed-ended</option><option value="1"' + (e.openEnded ? ' selected' : '') + '>Open-ended</option></select></td>' +
-        '<td><input type="text" data-k="co" value="' + esc(e.co || '') + '" style="width:80px" aria-label="CO ' + (i + 1) + '"></td><td><input type="text" data-k="report" value="' + esc(e.report || '') + '" style="width:60px" aria-label="Kod laporan ' + (i + 1) + '"></td>' +
-        '<td><input type="text" data-k="reportLabel" value="' + esc(e.reportLabel || '') + '" aria-label="Label laporan ' + (i + 1) + '"></td>' +
-        '<td><select data-k="manual" aria-label="Manual ' + (i + 1) + '"><option value="">(tiada)</option>' + Object.keys(C.links || {}).map(function (k) { return '<option' + (e.manual === k ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></td>' +
-        '<td><button type="button" class="clp-btn" data-edel="' + i + '" aria-label="Padam eksperimen ' + (i + 1) + '">×</button></td></tr>';
+      return '<tr data-e="' + i + '"><td>' + (i + 1) + '</td><td><input type="text" data-k="name" value="' + esc(e.name) + '" aria-label="Experiment name ' + (i + 1) + '"></td><td><input type="text" data-k="short" value="' + esc(e.short || '') + '" aria-label="Short name ' + (i + 1) + '"></td>' +
+        '<td><select data-k="openEnded" aria-label="Type ' + (i + 1) + '"><option value="0"' + (!e.openEnded ? ' selected' : '') + '>Closed-ended</option><option value="1"' + (e.openEnded ? ' selected' : '') + '>Open-ended</option></select></td>' +
+        '<td><input type="text" data-k="co" value="' + esc(e.co || '') + '" style="width:80px" aria-label="CO ' + (i + 1) + '"></td><td><input type="text" data-k="report" value="' + esc(e.report || '') + '" style="width:60px" aria-label="Report code ' + (i + 1) + '"></td>' +
+        '<td><input type="text" data-k="reportLabel" value="' + esc(e.reportLabel || '') + '" aria-label="Report label ' + (i + 1) + '"></td>' +
+        '<td><select data-k="manual" aria-label="Manual ' + (i + 1) + '"><option value="">(none)</option>' + Object.keys(C.links || {}).map(function (k) { return '<option' + (e.manual === k ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></td>' +
+        '<td><button type="button" class="clp-btn" data-edel="' + i + '" aria-label="Delete experiment ' + (i + 1) + '">×</button></td></tr>';
     }).join('');
-    return '<p class="clp-warn">Nombor eksperimen mengikut urutan senarai ini; baris jadual merujuk nombor ini.</p><div style="overflow:auto"><table><thead><tr><th>#</th><th>Nama</th><th>Pendek</th><th>Jenis</th><th>CO</th><th>Kod lap.</th><th>Label lap.</th><th>Manual</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div><button type="button" class="clp-btn" data-addexp style="margin-top:8px">+ Tambah eksperimen</button>' + (rep.length ? '' : '<p class="clp-warn">Kod laporan (TR/LR) berkait dengan bahagian Penilaian dalam content.json.</p>');
+    return '<p class="clp-warn">Lab numbers follow the order of this list; schedule rows refer to these numbers.</p><div style="overflow:auto"><table><thead><tr><th>#</th><th>Name</th><th>Short</th><th>Type</th><th>CO</th><th>Report code</th><th>Report label</th><th>Manual</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div><button type="button" class="clp-btn" data-addexp style="margin-top:8px">+ Add experiment</button>' + (rep.length ? '' : '<p class="clp-warn">Report codes (TR/LR) link to the Assessment section.</p>');
   }
   function wire(gi, g) {
     var pan = o.pan;
@@ -341,10 +389,10 @@ function schedulePanel() {
         $$('[data-k]', tr0).forEach(function (el) { el.addEventListener('change', function () { var k = el.getAttribute('data-k'), v = el.value.trim(); if (k === 'openEnded') e.openEnded = v === '1'; else if (v === '') delete e[k]; else e[k] = v; mark('experiments.items.' + i + '.' + k); }); });
       });
       $$('[data-edel]', pan).forEach(function (b) { b.addEventListener('click', function () {
-        var n = +b.getAttribute('data-edel') + 1, used = S.plan.some(function (p) { return p.experiment === n || p.submit === n; });
-        if (used) { say('Eksperimen ' + n + ' masih digunakan dalam jadual. Tukar baris itu dahulu.'); return; }
+        var n = +b.getAttribute('data-edel') + 1, used = allPlans().some(function (pl) { return pl.some(function (p) { return p.experiment === n || p.submit === n; }); });
+        if (used) { say('Experiment ' + n + ' is still used in the schedule. Change those rows first.'); return; }
         snapshot(); C.experiments.items.splice(n - 1, 1);
-        S.plan.forEach(function (p) { if (p.experiment > n) p.experiment--; if (p.submit > n) p.submit--; });
+        allPlans().forEach(function (pl) { pl.forEach(function (p) { if (p.experiment > n) p.experiment--; if (p.submit > n) p.submit--; }); });
         structural++; updateStatus(); render();
       }); });
       var ae = $('[data-addexp]', pan); if (ae) ae.addEventListener('click', function () { snapshot(); if (!C.experiments) STARTER.experiments(); else C.experiments.items.push({ name: M('Eksperimen baharu', 'New experiment'), short: M('Baharu', 'New'), openEnded: false, co: '', report: '', reportLabel: '' }); structural++; updateStatus(); render(); });
@@ -353,12 +401,13 @@ function schedulePanel() {
     if (!g) return;
     $$('[data-g]', pan).forEach(function (el) { el.addEventListener('change', function () { var k = el.getAttribute('data-g'), v = el.value.trim(); if (k === 'id' && !v) { el.value = g.id; return; } if (v === '') delete g[k]; else g[k] = v; mark('schedule.groups.' + gi + '.' + k); if (k === 'id' || k === 'day') render(); }); });
     $$('tr[data-r]', pan).forEach(function (tr0) {
-      var i = +tr0.getAttribute('data-r'), p = S.plan[i];
+      var i = +tr0.getAttribute('data-r'), p = PL(g)[i];
       $$('[data-p]', tr0).forEach(function (el) { el.addEventListener('change', function () {
         var k = el.getAttribute('data-p'), v = el.value.trim();
         if (k === 'week') { p.week = v === '' ? null : (+v || null); }
         else if (k === 'type') { p.type = v; if (v !== 'lab' && v !== 'consult') delete p.experiment; if (v === 'break') p.week = null; }
         else if (k === 'experiment' || k === 'submit') { if (v) p[k] = +v; else delete p[k]; }
+        else if (k === 'exptype') { var ex = C.experiments && C.experiments.items[p.experiment - 1]; if (ex) ex.openEnded = (v === 'OE'); mark('experiments.items.' + (p.experiment - 1) + '.openEnded'); }
         else if (k === 'note') { if (v) p.note = v; else delete p.note; }
         else if (k === 'label') { if (v) { p.label = v; if (!p.legend) p.legend = v; } else delete p.label; }
         mark('schedule.plan.' + i + '.' + k); render();
@@ -366,21 +415,28 @@ function schedulePanel() {
       $('[data-d]', tr0).addEventListener('change', function (e) { g.dates[i] = e.target.value; mark('schedule.groups.' + gi + '.dates.' + i); render(); });
       $('[data-h]', tr0).addEventListener('change', function (e) { g.holidays = g.holidays || {}; var v = e.target.value.trim(); if (v) g.holidays[i] = v; else delete g.holidays[i]; mark('schedule.groups.' + gi + '.holidays'); });
     });
-    function shiftHolidays(from, delta) { S.groups.forEach(function (x) { var n = {}; Object.keys(x.holidays || {}).forEach(function (k) { var j = +k; if (delta > 0 ? j > from : j >= from) n[j + delta] = x.holidays[k]; else if (delta < 0 && j < from) n[j] = x.holidays[k]; else if (delta > 0) n[j] = x.holidays[k]; }); x.holidays = n; }); }
+    function shiftHolidays(from, delta) { affected(g).forEach(function (x) { var n = {}; Object.keys(x.holidays || {}).forEach(function (k) { var j = +k; if (delta > 0 ? j > from : j >= from) n[j + delta] = x.holidays[k]; else if (delta < 0 && j < from) n[j] = x.holidays[k]; else if (delta > 0) n[j] = x.holidays[k]; }); x.holidays = n; }); }
     $$('[data-ins]', pan).forEach(function (b) { b.addEventListener('click', function () {
-      snapshot(); var i = +b.getAttribute('data-ins'), prev = S.plan[i];
-      S.plan.splice(i + 1, 0, { type: 'lab', week: prev && prev.week ? prev.week + 1 : null });
-      S.groups.forEach(function (x) { var prevd = x.dates[i]; x.dates.splice(i + 1, 0, prevd ? addDays(prevd, 7) : ''); });
+      snapshot(); var i = +b.getAttribute('data-ins'), prev = PL(g)[i];
+      PL(g).splice(i + 1, 0, { type: 'lab', week: prev && prev.week ? prev.week + 1 : null });
+      affected(g).forEach(function (x) { var prevd = x.dates[i]; x.dates.splice(i + 1, 0, prevd ? addDays(prevd, 7) : ''); });
       shiftHolidays(i, 1); structural++; updateStatus(); render();
     }); });
     $$('[data-del]', pan).forEach(function (b) { b.addEventListener('click', function () {
-      if (S.plan.length <= 1) { say('Mesti ada sekurang-kurangnya satu baris.'); return; }
-      snapshot(); var i = +b.getAttribute('data-del'); S.plan.splice(i, 1); S.groups.forEach(function (x) { x.dates.splice(i, 1); }); shiftHolidays(i, -1); structural++; updateStatus(); render();
+      if (PL(g).length <= 1) { say('There must be at least one row.'); return; }
+      snapshot(); var i = +b.getAttribute('data-del'); PL(g).splice(i, 1); affected(g).forEach(function (x) { x.dates.splice(i, 1); }); shiftHolidays(i, -1); structural++; updateStatus(); render();
     }); });
-    $('[data-addrow]', pan).addEventListener('click', function () { snapshot(); var last = S.plan[S.plan.length - 1]; S.plan.push({ type: 'lab', week: last && last.week ? last.week + 1 : null }); S.groups.forEach(function (x) { var ld = x.dates[x.dates.length - 1]; x.dates.push(ld ? addDays(ld, 7) : ''); }); structural++; updateStatus(); render(); });
-    $('[data-fill]', pan).addEventListener('click', function () { if (!g.dates[0]) { say('Isi tarikh baris pertama dahulu.'); return; } snapshot(); for (var i = 1; i < g.dates.length; i++) g.dates[i] = addDays(g.dates[0], 7 * i); structural++; updateStatus(); render(); });
-    var cp = $('[data-copy]', pan); if (cp) cp.addEventListener('click', function () { var src = S.groups[+$('[data-copyfrom]', pan).value], n = parseInt($('[data-copyn]', pan).value, 10) || 0; snapshot(); g.dates = src.dates.map(function (d) { return d ? addDays(d, n) : ''; }); structural++; updateStatus(); render(); });
-    $('[data-delg]', pan).addEventListener('click', function () { if (S.groups.length <= 1) { say('Mesti ada sekurang-kurangnya satu kumpulan.'); return; } snapshot(); S.groups.splice(gi, 1); tab = 'g:0'; structural++; updateStatus(); render(); });
+    var ar = $('[data-addrow]', pan); if (ar) ar.addEventListener('click', function () { snapshot(); var last = PL(g)[PL(g).length - 1]; PL(g).push({ type: 'lab', week: last && last.week ? last.week + 1 : null }); affected(g).forEach(function (x) { var ld = x.dates[x.dates.length - 1]; x.dates.push(ld ? addDays(ld, 7) : ''); }); structural++; updateStatus(); render(); });
+    $('[data-fill]', pan).addEventListener('click', function () { if (!g.dates[0]) { say('Enter the first row date first.'); return; } snapshot(); for (var i = 1; i < g.dates.length; i++) g.dates[i] = addDays(g.dates[0], 7 * i); structural++; updateStatus(); render(); });
+    var cp = $('[data-copy]', pan); if (cp) cp.addEventListener('click', function () { var src = S.groups[+$('[data-copyfrom]', pan).value], n = parseInt($('[data-copyn]', pan).value, 10) || 0; if (src.dates.length !== g.dates.length) { say('These groups have a different number of rows, so dates cannot be copied.'); return; } snapshot(); g.dates = src.dates.map(function (d) { return d ? addDays(d, n) : ''; }); structural++; updateStatus(); render(); });
+    var ow = $('[data-own]', pan); if (ow) ow.addEventListener('change', function () {
+      if (ow.checked) { snapshot(); g.plan = JSON.parse(JSON.stringify(S.plan)); structural++; updateStatus(); render(); return; }
+      if (!window.confirm('Remove the own session order of ' + g.id + '? It will follow ' + S.groups[0].id + ' again and its own rows will be lost.')) { ow.checked = true; return; }
+      snapshot(); delete g.plan; var n = S.plan.length; while (g.dates.length > n) g.dates.pop(); while (g.dates.length < n) g.dates.push('');
+      Object.keys(g.holidays || {}).forEach(function (k) { if (+k >= n) delete g.holidays[k]; });
+      structural++; updateStatus(); render();
+    });
+    $('[data-delg]', pan).addEventListener('click', function () { if (S.groups.length <= 1) { say('There must be at least one group.'); return; } snapshot(); S.groups.splice(gi, 1); tab = 'g:0'; structural++; updateStatus(); render(); });
   }
   render();
 }
@@ -394,11 +450,11 @@ function assessmentPanel() {
   function inp(attrs, val, label, w) { return '<input type="text" ' + attrs + ' value="' + esc(val == null ? '' : val) + '" aria-label="' + esc(label) + '"' + (w ? ' style="width:' + w + 'px"' : '') + '>'; }
   function render() {
     var sum = A.weights.reduce(function (a, w) { return a + (+w.percent || 0); }, 0);
-    var html = '<h2>Panel penilaian</h2><h3>Wajaran markah</h3><table><thead><tr><th>Label</th><th>%</th><th>Butiran</th><th></th></tr></thead><tbody>' +
-      A.weights.map(function (w, i) { return '<tr data-w="' + i + '"><td>' + inp('data-k="label"', w.label, 'Label wajaran ' + (i + 1)) + '</td><td>' + inp('data-k="percent"', w.percent, 'Peratus ' + (i + 1), 60) + '</td><td>' + inp('data-k="detail"', w.detail, 'Butiran ' + (i + 1)) + '</td><td><button type="button" class="clp-btn" data-wdel="' + i + '" aria-label="Padam wajaran ' + (i + 1) + '">×</button></td></tr>'; }).join('') +
-      '</tbody></table><p class="' + (sum === 100 ? '' : 'clp-warn') + '">Jumlah: ' + sum + '%' + (sum === 100 ? ' ✔' : ' ⚠ patut 100%') + '</p><button type="button" class="clp-btn" data-wadd>+ Tambah wajaran</button><p class="clp-warn">Gunakan {testDate} dalam butiran untuk tarikh ujian automatik.</p>' +
-      '<h3>Kad laporan / rubrik</h3>' + A.reports.map(function (r, i) { return reportHtml(r, i); }).join('') + '<button type="button" class="clp-btn" data-radd>+ Tambah laporan</button>' +
-      '<p class="row" style="margin-top:16px"><button type="button" class="clp-btn pri" data-close>Selesai</button></p>';
+    var html = '<h2>Assessment panel</h2><h3>Mark weights</h3><table><thead><tr><th>Label</th><th>%</th><th>Details</th><th></th></tr></thead><tbody>' +
+      A.weights.map(function (w, i) { return '<tr data-w="' + i + '"><td>' + inp('data-k="label"', w.label, 'Weight label ' + (i + 1)) + '</td><td>' + inp('data-k="percent"', w.percent, 'Percent ' + (i + 1), 60) + '</td><td>' + inp('data-k="detail"', w.detail, 'Details ' + (i + 1)) + '</td><td><button type="button" class="clp-btn" data-wdel="' + i + '" aria-label="Delete weight ' + (i + 1) + '">×</button></td></tr>'; }).join('') +
+      '</tbody></table><p class="' + (sum === 100 ? '' : 'clp-warn') + '">Total: ' + sum + '%' + (sum === 100 ? ' ✔' : ' ⚠ should be 100%') + '</p><button type="button" class="clp-btn" data-wadd>+ Add weight</button><p class="clp-warn">Use {testDate} in details to insert the test date automatically.</p>' +
+      '<h3>Report cards / rubrics</h3>' + A.reports.map(function (r, i) { return reportHtml(r, i); }).join('') + '<button type="button" class="clp-btn" data-radd>+ Add report</button>' +
+      '<p class="row" style="margin-top:16px"><button type="button" class="clp-btn pri" data-close>Done</button></p>';
     var keep = o ? o.pan.scrollTop : 0;
     if (o) o.pan.innerHTML = html; else o = overlay(html, true, function () { refresh(); });
     o.pan.scrollTop = keep; wire();
@@ -406,14 +462,14 @@ function assessmentPanel() {
   function reportHtml(r, i) {
     var crit = Array.isArray(r.criteria) ? r.criteria : [], cs = crit.reduce(function (a, c) { return a + (+c[1] || 0); }, 0), sc = +r.scale || cs;
     var lk = Object.keys(C.links || {});
-    return '<fieldset data-r="' + i + '" style="border:1px solid #98A2B3;border-radius:10px;margin:10px 0;padding:10px"><legend><b>' + esc(r.code || 'Laporan ' + (i + 1)) + '</b></legend>' +
-      '<div class="row"><div><label>Kod</label>' + inp('data-rk="code"', r.code, 'Kod laporan') + '</div><div><label>Nama</label>' + inp('data-rk="name"', r.name, 'Nama laporan') + '</div><div><label>Mod (cth Individual)</label>' + inp('data-rk="mode"', r.mode, 'Mod') + '</div>' +
-      '<div><label>Warna mod</label><select data-rk="modeTone" aria-label="Warna mod"><option value="blue"' + (r.modeTone !== 'pink' ? ' selected' : '') + '>Biru</option><option value="pink"' + (r.modeTone === 'pink' ? ' selected' : '') + '>Merah jambu</option></select></div>' +
-      '<div><label>Makmal berkaitan (teks)</label>' + inp('data-rk="labs"', r.labs, 'Makmal berkaitan') + '</div><div><label>Skala (markah penuh)</label>' + inp('data-rk="scale"', r.scale, 'Skala', 70) + '</div></div>' +
-      '<table style="margin-top:8px"><thead><tr><th>Kriteria</th><th>Markah</th><th></th></tr></thead><tbody>' + crit.map(function (c, j) { return '<tr data-c="' + j + '"><td><input type="text" data-ck="0" value="' + esc(c[0]) + '" aria-label="Kriteria ' + (j + 1) + '"></td><td><input type="text" data-ck="1" value="' + esc(c[1]) + '" style="width:60px" aria-label="Markah ' + (j + 1) + '"></td><td><button type="button" class="clp-btn" data-cdel="' + j + '" aria-label="Padam kriteria ' + (j + 1) + '">×</button></td></tr>'; }).join('') + '</tbody></table>' +
-      '<p class="' + (cs === sc ? '' : 'clp-warn') + '">Jumlah kriteria: ' + cs + ' / ' + sc + (cs === sc ? ' ✔' : ' ⚠') + ' <button type="button" class="clp-btn" data-cadd>+ Kriteria</button></p>' +
-      '<div><b>Butang pautan</b></div>' + (r.buttons || []).map(function (b, j) { return '<div class="row" data-b="' + j + '"><input type="text" data-bk="label" value="' + esc(b.label) + '" aria-label="Label butang ' + (j + 1) + '"><select data-bk="link" aria-label="Pautan butang ' + (j + 1) + '"><option value="">(pilih)</option>' + lk.map(function (k) { return '<option' + (b.link === k ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select><button type="button" class="clp-btn" style="flex:0 0 auto" data-bdel="' + j + '" aria-label="Padam butang ' + (j + 1) + '">×</button></div>'; }).join('') +
-      '<button type="button" class="clp-btn" data-badd style="margin-top:6px">+ Butang</button> <button type="button" class="clp-btn" data-rdel style="margin-top:6px">Padam laporan ini</button></fieldset>';
+    return '<fieldset data-r="' + i + '" style="border:1px solid #98A2B3;border-radius:10px;margin:10px 0;padding:10px"><legend><b>' + esc(r.code || 'Report ' + (i + 1)) + '</b></legend>' +
+      '<div class="row"><div><label>Code</label>' + inp('data-rk="code"', r.code, 'Report code') + '</div><div><label>Name</label>' + inp('data-rk="name"', r.name, 'Report name') + '</div><div><label>Mode (e.g. Individual)</label>' + inp('data-rk="mode"', r.mode, 'Mode') + '</div>' +
+      '<div><label>Mode colour</label><select data-rk="modeTone" aria-label="Mode colour"><option value="blue"' + (r.modeTone !== 'pink' ? ' selected' : '') + '>Blue</option><option value="pink"' + (r.modeTone === 'pink' ? ' selected' : '') + '>Pink</option></select></div>' +
+      '<div><label>Related labs (text)</label>' + inp('data-rk="labs"', r.labs, 'Related labs') + '</div><div><label>Scale (full marks)</label>' + inp('data-rk="scale"', r.scale, 'Scale', 70) + '</div></div>' +
+      '<table style="margin-top:8px"><thead><tr><th>Criteria</th><th>Marks</th><th></th></tr></thead><tbody>' + crit.map(function (c, j) { return '<tr data-c="' + j + '"><td><input type="text" data-ck="0" value="' + esc(c[0]) + '" aria-label="Criterion ' + (j + 1) + '"></td><td><input type="text" data-ck="1" value="' + esc(c[1]) + '" style="width:60px" aria-label="Marks ' + (j + 1) + '"></td><td><button type="button" class="clp-btn" data-cdel="' + j + '" aria-label="Delete criterion ' + (j + 1) + '">×</button></td></tr>'; }).join('') + '</tbody></table>' +
+      '<p>Criteria total: ' + cs + (cs !== sc ? ' (converted to a scale of ' + sc + ')' : '') + ' <button type="button" class="clp-btn" data-cadd>+ Criterion</button></p>' +
+      '<div><b>Link buttons</b></div>' + (r.buttons || []).map(function (b, j) { return '<div class="row" data-b="' + j + '"><input type="text" data-bk="label" value="' + esc(b.label) + '" aria-label="Button label ' + (j + 1) + '"><select data-bk="link" aria-label="Button link ' + (j + 1) + '"><option value="">(choose)</option>' + lk.map(function (k) { return '<option' + (b.link === k ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select><button type="button" class="clp-btn" style="flex:0 0 auto" data-bdel="' + j + '" aria-label="Delete button ' + (j + 1) + '">×</button></div>'; }).join('') +
+      '<button type="button" class="clp-btn" data-badd style="margin-top:6px">+ Button</button> <button type="button" class="clp-btn" data-rdel style="margin-top:6px">Delete this report</button></fieldset>';
   }
   function wire() {
     var pan = o.pan;
@@ -441,19 +497,18 @@ function assessmentPanel() {
 function checker() {
   var errs = P.validate(), items = [], S = C.schedule;
   var tx = JSON.stringify(C);
-  Object.keys(C.links || {}).forEach(function (k) { if (!C.links[k]) items.push('Pautan "' + k + '" kosong.'); });
-  function chkLinks(arr, base) { (arr || []).forEach(function (x, i) { if (x.link && !(C.links && C.links[x.link]) && x.link !== 'email' && !/^(#|https?:|mailto:|tel:)/i.test(x.link)) items.push(base + ' ' + (i + 1) + ': pautan "' + x.link + '" tidak wujud.'); }); }
-  chkLinks(C.startHere && C.startHere.steps, 'Mula di sini'); chkLinks(C.quickLinks, 'Pautan pantas'); chkLinks(C.support, 'Sokongan');
-  (C.quickLinks || []).concat((C.startHere && C.startHere.steps) || []).forEach(function (x) { if (x.link && x.link.charAt(0) === '#' && P.anchors().indexOf(x.link) < 0) items.push('Pautan "' + x.link + '" menuju bahagian yang dimatikan.'); });
+  Object.keys(C.links || {}).forEach(function (k) { if (!C.links[k]) items.push('Link "' + k + '" is empty.'); });
+  function chkLinks(arr, base) { (arr || []).forEach(function (x, i) { if (x.link && !(C.links && C.links[x.link]) && x.link !== 'email' && !/^(#|https?:|mailto:|tel:)/i.test(x.link)) items.push(base + ' ' + (i + 1) + ': link "' + x.link + '" does not exist.'); }); }
+  chkLinks(C.startHere && C.startHere.steps, 'Start here'); chkLinks(C.quickLinks, 'Quick links'); chkLinks(C.support, 'Support');
+  (C.quickLinks || []).concat((C.startHere && C.startHere.steps) || []).forEach(function (x) { if (x.link && x.link.charAt(0) === '#' && P.anchors().indexOf(x.link) < 0) items.push('Link "' + x.link + '" points to a section that is switched off.'); });
   if (S && S.plan && C.experiments && C.experiments.items) {
-    C.experiments.items.forEach(function (e, i) { if (!S.plan.some(function (p) { return p.type === 'lab' && p.experiment === i + 1; })) items.push('Eksperimen ' + (i + 1) + ' tiada baris "Makmal" dalam jadual.'); });
-    S.groups.forEach(function (g) { g.dates.forEach(function (d, i) { var w = DAYS[String(g.day || '').toLowerCase()]; if (d && w != null && wd(d) !== w && !S.plan[i].noDate) items.push(g.id + ' baris ' + (i + 1) + ': ' + d + ' ialah ' + DAYMS[wd(d)] + ', bukan ' + g.day + '.'); }); });
+    C.experiments.items.forEach(function (e, i) { S.groups.forEach(function (g) { var pl = Array.isArray(g.plan) ? g.plan : S.plan; if (!pl.some(function (p) { return p.type === 'lab' && p.experiment === i + 1; })) items.push('Experiment ' + (i + 1) + ' has no "Lab" row for ' + g.id + '.'); }); });
+    S.groups.forEach(function (g) { g.dates.forEach(function (d, i) { var w = DAYS[String(g.day || '').toLowerCase()]; if (d && w != null && wd(d) !== w && !(Array.isArray(g.plan) ? g.plan : S.plan)[i].noDate) items.push(g.id + ' row ' + (i + 1) + ': ' + d + ' is a ' + DAYMS[wd(d)] + ', not ' + g.day + '.'); }); });
   }
-  if (C.assessment && Array.isArray(C.assessment.weights) && C.assessment.weights.length) { var ws = C.assessment.weights.reduce(function (a, w) { return a + (+w.percent || 0); }, 0); if (ws !== 100) items.push('Jumlah wajaran penilaian ialah ' + ws + '%, bukan 100%.'); }
-  ((C.assessment && C.assessment.reports) || []).forEach(function (r) { var cs = (r.criteria || []).reduce(function (a, c) { return a + (+c[1] || 0); }, 0), sc = +r.scale || cs; if (cs !== sc) items.push('Laporan ' + r.code + ': jumlah kriteria ' + cs + ' tidak sama dengan skala ' + sc + '.'); });
-  (P.warnings() || []).forEach(function (w) { items.push(w); });
-  var html = '<h2>Semakan</h2>' + (errs.length ? '<h3 class="clp-err">Perlu dibetulkan</h3><ul class="ck">' + errs.map(function (m) { return '<li class="clp-err">' + esc(m) + '</li>'; }).join('') + '</ul>' : '<p>✔ Tiada ralat yang menghalang halaman.</p>') +
-    (items.length ? '<h3>Perlu diperiksa</h3><ul class="ck">' + items.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('') + '</ul>' : '<p>✔ Tiada amaran.</p>') + '<p class="row"><button type="button" class="clp-btn pri" data-close>Tutup</button></p>';
+  if (C.assessment && Array.isArray(C.assessment.weights) && C.assessment.weights.length) { var ws = C.assessment.weights.reduce(function (a, w) { return a + (+w.percent || 0); }, 0); if (ws !== 100) items.push('Assessment weights add up to ' + ws + '%, not 100%.'); }
+    (P.warnings() || []).forEach(function (w) { items.push(w); });
+  var html = '<h2>Check</h2>' + (errs.length ? '<h3 class="clp-err">Must fix</h3><ul class="ck">' + errs.map(function (m) { return '<li class="clp-err">' + esc(m) + '</li>'; }).join('') + '</ul>' : '<p>✔ No errors that block the page.</p>') +
+    (items.length ? '<h3>Please review</h3><ul class="ck">' + items.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('') + '</ul>' : '<p>✔ No warnings.</p>') + '<p class="row"><button type="button" class="clp-btn pri" data-close>Close</button></p>';
   overlay(html, true);
 }
 
@@ -469,23 +524,23 @@ function ser(v, ind) {
 }
 function download() {
   var errs = P.validate();
-  if (errs.length && !window.confirm('Ada ralat:\n- ' + errs.join('\n- ') + '\n\nMuat turun juga?')) return;
+  if (errs.length && !window.confirm('Errors found:\n- ' + errs.join('\n- ') + '\n\nDownload anyway?')) return;
   var text = ser(C, 0) + '\n';
   try { JSON.parse(text); } catch (e) { text = JSON.stringify(C, null, 2) + '\n'; }
   var js = window.__clpSource === 'js', fname = js ? 'content.js' : 'content.json';
-  if (js) text = "/* Course content. Edit with index.html?edit and press 'Muat turun content.js', then replace this file. */\nwindow.__courseContent = " + text.trim() + ";\n";
+  if (js) text = "/* Course content. Edit with index.html?edit and press 'Download content.js', then replace this file. */\nwindow.__courseContent = " + text.trim() + ";\n";
   var blob = new Blob([text], { type: js ? 'text/javascript' : 'application/json' }), a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   dirty = {}; structural = 0; updateStatus(); window.__clpLast = text;
-  say(fname + ' dimuat turun. Gantikan fail lama dalam folder (atau muat naik ke GitHub).');
+  say(fname + ' downloaded. Replace the old file in your folder (or upload it to GitHub).');
 }
 
 /* ---------- bar actions + leave guard ---------- */
 bar.addEventListener('click', function (e) {
   var a = e.target.getAttribute && e.target.getAttribute('data-a'); if (!a) return;
-  if (a === 'settings') settings(); else if (a === 'schedule') schedulePanel(); else if (a === 'assess') assessmentPanel(); else if (a === 'check') checker(); else if (a === 'download') download();
-  else if (a === 'exit') { if ((count() + structural) && !window.confirm('Ada perubahan yang belum dimuat turun. Keluar juga?')) return; window.onbeforeunload = null; location.search = location.search.replace(/([?&])edit(=[^&]*)?(&|$)/, '$1').replace(/[?&]$/, ''); }
+  if (a === 'settings') settings(); else if (a === 'schedule') schedulePanel(); else if (a === 'assess') assessmentPanel(); else if (a === 'check') checker(); else if (a === 'notes') { var h = document.body.classList.toggle('clp-nonotes'); e.target.setAttribute('aria-pressed', h ? 'true' : 'false'); e.target.textContent = h ? 'Show notes' : 'Hide notes'; } else if (a === 'download') download();
+  else if (a === 'exit') { if ((count() + structural) && !window.confirm('You have unsaved changes. Exit anyway?')) return; window.onbeforeunload = null; location.search = location.search.replace(/([?&])edit(=[^&]*)?(&|$)/, '$1').replace(/[?&]$/, ''); }
 });
 window.onbeforeunload = function (e) { if (count() + structural) { e.preventDefault(); e.returnValue = ''; return ''; } };
 window.__clpEditor = { ser: ser, download: download };
