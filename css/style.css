@@ -141,6 +141,7 @@ a.ql:hover{border-color:var(--accent);background:var(--tint)}
 /* Experiments */
 .labs{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
 .lab{display:flex;gap:16px;padding:20px;border-radius:16px;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--c)}
+.lab.missing{border-style:dashed;opacity:.85}.lab.missing button{margin-top:8px;font:inherit;font-size:14px;padding:6px 12px;border-radius:8px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer}
 .atom{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:22px;background:var(--c);color:var(--on-c);font-family:var(--head);font-weight:700;font-size:16px;letter-spacing:.02em}
 .lab .wk{font-size:13px;font-weight:600;color:var(--muted)}
 .lab h3{font-size:19px;margin:4px 0 0}
