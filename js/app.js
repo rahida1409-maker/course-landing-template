@@ -390,7 +390,11 @@ function renderExperiments(g) {
   var E = C.experiments, cards = '';
   exps.forEach(function (e, k) {
     var n = k + 1, wi = labIdx[n];
-    if (wi === undefined) { warn('Experiment ' + n + ' is not placed in schedule.plan (type "lab", experiment ' + n + ').'); return; }
+    if (wi === undefined) {
+      warn('Experiment ' + n + ' is not placed in schedule.plan (type "lab", experiment ' + n + ').');
+      if (EDIT) cards += '<li class="lab missing"><span class="atom" aria-hidden="true">' + (e.openEnded ? 'OE' : 'CE') + '</span><div><div class="wk">' + esc(word() + ' ' + n) + ' &middot; Not in schedule yet</div><h3>' + esc(e.name) + '</h3><p class="inf">Students will not see this lab until it is placed in the weekly plan.</p><button type="button" data-open="schedule">Open Schedule panel</button></div></li>';
+      return;
+    }
     var d = iso(g.dates[wi]), color = e.openEnded ? 'var(--c-oe)' : 'var(--c-ce)', inf = [];
     if (consIdx[n] !== undefined) inf.push('<b>' + esc(t('consult')) + '</b> ' + fmt(iso(g.dates[consIdx[n]])));
     if (subIdx[n] !== undefined) inf.push('<b>' + esc(t('submit') + ' ' + reportLabel(n)) + '</b> ' + fmt(iso(g.dates[subIdx[n]])) + (g.holidays && g.holidays[subIdx[n]] ? ' (' + esc(t('publicHoliday').toLowerCase()) + ')' : ''));
