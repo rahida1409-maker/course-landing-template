@@ -28,7 +28,7 @@ function mark(path) { dirty[path || ('#' + Math.random())] = 1; lastPath = path 
 function snapshot() { undoSnap = JSON.stringify(C); }
 function count() { return Object.keys(dirty).length; }
 var T = {
-  ms: { edit: 'Edit mode', changes: 'unsaved changes', none: 'No changes', settings: 'Page setup', schedule: 'Schedule panel', check: 'Check', download: (window.__clpSource === 'js' ? 'Download content.js' : 'Download content.json'), exit: 'Exit', add: '+ Add', remove: 'Delete', link: 'Link', undo: 'Undo', close: 'Close' }
+  ms: { edit: 'Edit mode', changes: 'unsaved changes', none: 'No changes', settings: 'Page setup', schedule: 'Schedule panel', check: 'Check', download: 'Save', exit: 'Exit', add: '+ Add', remove: 'Delete', link: 'Link', undo: 'Undo', close: 'Close' }
 };
 function tr(k) { return T.ms[k] || k; }
 
@@ -90,9 +90,9 @@ document.head.appendChild(css);
 /* ---------- bar ---------- */
 var bar = document.createElement('div');
 bar.id = 'clp-bar'; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Edit mode');
-bar.innerHTML = '<b>' + tr('edit') + '</b><span class="st" id="clp-st" role="status" aria-live="polite"></span><button type="button" id="clp-undo" data-a="undo" disabled>' + tr('undo') + '</button><span class="sp"></span>' +
+bar.innerHTML = '<b>' + tr('edit') + '</b><span class="st" id="clp-st" role="status" aria-live="polite"></span><button type="button" id="clp-undo" data-a="undo" disabled>' + tr('undo') + '</button><button type="button" class="pri" id="clp-save" data-a="download" title="' + (window.__clpSource === 'js' ? 'content.js' : 'content.json') + '">' + tr('download') + '</button><span class="sp"></span>' +
   '<button type="button" data-a="settings">' + tr('settings') + '</button><button type="button" data-a="schedule">' + tr('schedule') + '</button><button type="button" data-a="assess">Assessment panel</button><button type="button" data-a="check">' + tr('check') + '</button><button type="button" data-a="notes" aria-pressed="false">Hide notes</button>' +
-  '<button type="button" class="pri" data-a="download">' + tr('download') + '</button><button type="button" data-a="exit">' + tr('exit') + '</button>';
+  '<button type="button" data-a="exit">' + tr('exit') + '</button>';
 document.body.insertBefore(bar, document.body.firstChild);
 var toast = document.createElement('div'); toast.id = 'clp-toast'; toast.setAttribute('role', 'status'); document.body.appendChild(toast);
 function commit() {
@@ -107,15 +107,27 @@ function doUndo() {
   if (prev === origJSON) { dirty = {}; structural = 0; } else structural++;
   toast.style.display = 'none'; updateStatus(); refresh();
 }
-function updateStatus() { commit(); var ub = $('#clp-undo'); if (ub) ub.disabled = !hist.length; var n = count() + structural; $('#clp-st').textContent = n ? (n + ' ' + tr('changes')) : tr('none'); }
+var DKEY = 'clp-draft:' + location.pathname + ':' + ((C.course && C.course.code) || '');
+var draftReady = false;
+function saveDraft() { if (!draftReady) return; try { if (lastJSON === origJSON) localStorage.removeItem(DKEY); else localStorage.setItem(DKEY, JSON.stringify({ t: Date.now(), n: count() + structural, c: lastJSON })); } catch (e) {} }
+function updateStatus() { commit(); saveDraft(); var ub = $('#clp-undo'); if (ub) ub.disabled = !hist.length; var n = count() + structural; $('#clp-st').textContent = n ? (n + ' ' + tr('changes')) : tr('none'); }
 updateStatus();
 function say(msg, undo) {
   toast.innerHTML = '<span>' + esc(msg) + '</span>' + (undo ? '<button type="button" data-a="undo">' + tr('undo') + '</button>' : '');
   toast.style.display = 'flex'; clearTimeout(say.t); say.t = setTimeout(function () { toast.style.display = 'none'; }, undo ? 8000 : 3500);
 }
 toast.addEventListener('click', function (e) {
-  if (e.target.getAttribute('data-a') === 'undo') doUndo();
+  var a = e.target.getAttribute('data-a');
+  if (a === 'undo') doUndo();
+  else if (a === 'restore') restoreDraft();
+  else if (a === 'discard') { try { localStorage.removeItem(DKEY); } catch (x) {} toast.style.display = 'none'; }
 });
+var draftData = null;
+function restoreDraft() {
+  if (!draftData) return;
+  hist.push(lastJSON); replaceC(JSON.parse(draftData.c)); lastJSON = draftData.c; commit.p = null; structural = draftData.n || 1;
+  toast.style.display = 'none'; draftData = null; updateStatus(); refresh();
+}
 function replaceC(n) { var o = P.get(); Object.keys(o).forEach(function (k) { delete o[k]; }); Object.keys(n).forEach(function (k) { o[k] = n[k]; }); C = o; }
 
 /* ---------- re-render ---------- */
@@ -627,11 +639,11 @@ function download() {
   var text = ser(C, 0) + '\n';
   try { JSON.parse(text); } catch (e) { text = JSON.stringify(C, null, 2) + '\n'; }
   var js = window.__clpSource === 'js', fname = js ? 'content.js' : 'content.json';
-  if (js) text = "/* Course content. Edit with index.html?edit and press 'Download content.js', then replace this file. */\nwindow.__courseContent = " + text.trim() + ";\n";
+  if (js) text = "/* Course content. Edit with index.html?edit and press 'Save', then replace this file. */\nwindow.__courseContent = " + text.trim() + ";\n";
   var blob = new Blob([text], { type: js ? 'text/javascript' : 'application/json' }), a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-  dirty = {}; structural = 0; updateStatus(); window.__clpLast = text;
+  dirty = {}; structural = 0; updateStatus(); window.__clpLast = text; try { localStorage.removeItem(DKEY); } catch (e) {}
   say(fname + ' downloaded. If the browser warns about the file, choose Keep. Then replace the old file in your folder (or upload it to GitHub).');
 }
 
@@ -645,5 +657,14 @@ document.addEventListener('keydown', function (e) {
   if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !e.target.closest('input,textarea,select,[data-p]') && hist.length) { e.preventDefault(); doUndo(); }
 });
 window.onbeforeunload = function (e) { if (count() + structural) { e.preventDefault(); e.returnValue = ''; return ''; } };
+try {
+  var dj = localStorage.getItem(DKEY), dd = dj && JSON.parse(dj);
+  if (dd && dd.c && dd.c !== origJSON) {
+    draftData = dd; var tm = new Date(dd.t);
+    toast.innerHTML = '<span>Unsaved draft found (' + tm.toLocaleDateString() + ' ' + tm.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ').</span><button type="button" data-a="restore">Restore draft</button><button type="button" data-a="discard">Discard</button>';
+    toast.style.display = 'flex'; clearTimeout(say.t);
+  } else if (dj) localStorage.removeItem(DKEY);
+} catch (e) {}
+draftReady = true;
 window.__clpEditor = { ser: ser, download: download };
 })();
