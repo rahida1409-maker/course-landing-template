@@ -61,6 +61,8 @@ css.textContent = [
 '.clp-note button:focus-visible{outline:3px solid #12263F;outline-offset:2px}',
 '#app .head,#app section.sec,#app .hero{position:relative}',
 '.clp-note.nb{top:10px;right:16px}',
+'.strip>.clp-auto{background:#DBEAFE!important;border-color:#93C5FD!important;color:#1E3A8A!important;cursor:pointer}.strip>.clp-auto .l{color:#1E3A8A!important}.strip>.clp-auto:focus-visible{outline:3px solid #12263F;outline-offset:2px}',
+'.clp-tag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:#fff;color:#1E3A8A;border:1px solid #93C5FD;font-size:11px;font-weight:700}',
 'body.clp-nonotes .clp-note{display:none!important}',
 '@media (max-width:760px){#app .head{display:block}#app .head>.clp-note{margin:0 0 10px}}',
 '.clp-x,.clp-lk{position:absolute;top:-10px;z-index:5;width:28px;height:28px;border-radius:50%;border:1px solid #0003;background:#fff;color:#12263F;cursor:pointer;font:16px/1 system-ui;display:grid;place-items:center;padding:0}',
@@ -236,6 +238,13 @@ function extras() {
     ph.setAttribute('title', 'Drag a photo here, or click to choose one'); ph.style.cursor = 'pointer'; ph.style.outline = '2px dashed #0F766E88'; ph.style.outlineOffset = '3px';
     if (photoUrl && getAt('lecturer.photo') === photoPath) { var old = $('img', ph); if (old) old.remove(); var im = document.createElement('img'); im.src = photoUrl; im.alt = ''; ph.insertBefore(im, ph.firstChild); }
   }
+  var hasG = C.schedule && C.schedule.groups && C.schedule.groups.length;
+  $$('.strip > div:not(.wc)', app).forEach(function (d) {
+    var v = $('.v', d), l = $('.l', d); if (!v || !l || v.hasAttribute('data-p') || d.hasAttribute('data-open')) return;
+    d.classList.add('clp-auto'); d.setAttribute('data-open', hasG ? 'schedule' : 'settings'); d.setAttribute('role', 'button'); d.tabIndex = 0;
+    d.setAttribute('title', hasG ? 'Set in the Schedule panel (click to open)' : 'Set in Page setup (click to open)');
+    var tg = document.createElement('span'); tg.className = 'clp-tag'; tg.textContent = (hasG ? 'Schedule panel' : 'Page setup') + ' ↗'; l.appendChild(tg);
+  });
   $$('.pick', app).forEach(function (b) {
     if ($('.clp-x', b)) return; b.style.position = 'relative';
     var x = document.createElement('span'); x.className = 'clp-x'; x.setAttribute('role', 'button'); x.tabIndex = 0; x.textContent = '×';
@@ -254,6 +263,8 @@ app.addEventListener('click', function (e) {
   if (e.target.closest && e.target.closest('#ph')) { e.preventDefault(); e.stopPropagation(); fileIn.click(); }
 }, true);
 app.addEventListener('keydown', function (e) {
+  var oa = e.target.classList && e.target.classList.contains('clp-auto') ? e.target : null;
+  if (oa && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); oa.click(); return; }
   var x = e.target.closest && e.target.closest('[data-delgroup]');
   if (x && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); delGroup(x.getAttribute('data-delgroup')); }
 }, true);
