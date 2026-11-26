@@ -52,7 +52,7 @@ var MON = {
 var BAR_LIGHT = ['#12263F', '#0F766E', '#1D4ED8', '#92400E', '#6D28D9'], BAR_DARK = ['#14532D', '#0F766E', '#155E75', '#854D0E', '#5B21B6'];
 function barColors() { return document.documentElement.getAttribute('data-theme') === 'dark' ? BAR_DARK : BAR_LIGHT; }
 var TONES = ['#0F766E', '#1D4ED8', '#92400E', '#6D28D9', '#BE123C', '#4A5B70'];
-var SECTION_ORDER = ['schedule', 'experiments', 'workflow', 'assessment', 'rules'];
+var SECTION_ORDER = ['experiments', 'schedule', 'workflow', 'assessment', 'rules'];
 
 var app = document.getElementById('app');
 var C = null, T = null, L = 'en', warnings = [];
@@ -484,8 +484,8 @@ function render() {
   var html = renderNav(ids);
   if (warnings.length && /[?&]debug\b/.test(location.search)) html += '<div class="warn" role="status"><b>content.json notes:</b> ' + warnings.map(esc).join(' · ') + '</div>';
   html += '<main id="main" tabindex="-1">' + renderHero(g, cur) + renderStart() + renderLinks();
-  if (sectionsOn.indexOf('schedule') > -1) html += renderSchedule(g, cur);
   if (sectionsOn.indexOf('experiments') > -1) html += renderExperiments(g);
+  if (sectionsOn.indexOf('schedule') > -1) html += renderSchedule(g, cur);
   if (sectionsOn.indexOf('workflow') > -1) html += renderWorkflow();
   if (sectionsOn.indexOf('assessment') > -1) html += renderAssessment(g);
   if (sectionsOn.indexOf('rules') > -1) html += renderRules();
