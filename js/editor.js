@@ -48,16 +48,19 @@ css.textContent = [
 '#app [data-p]:empty::before{content:attr(aria-label);opacity:.5;font-style:italic}',
 '#app [data-p]:hover{background:#0F766E14}#app [data-p]:focus{outline:2px solid #0F766E;background:#fff8}',
 '#app [data-item]{position:relative}',
-'.clp-note{box-sizing:border-box;border-radius:10px;padding:8px 10px;font:12.5px/1.45 system-ui,sans-serif;max-width:100%}',
-'.clp-note b{display:block;font-weight:700;margin-bottom:2px}',
+'.clp-note{box-sizing:border-box;position:absolute;top:0;right:0;z-index:30;width:max-content;max-width:min(280px,100%);border-radius:10px;font:12.5px/1.45 system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.18)}',
+'.clp-note>b{display:block;margin:0;padding:3px 10px;font-weight:700;font-size:12px;cursor:pointer;border-radius:10px;white-space:nowrap}',
+'.clp-note>b:focus-visible{outline:3px solid #12263F;outline-offset:2px}',
+'.clp-note .nbody{display:none;padding:0 10px 8px}',
+'.clp-note.open .nbody,.clp-note:hover .nbody{display:block}',
+'.clp-note.open,.clp-note:hover{width:280px;z-index:60}',
 '.clp-note.dir{background:#DCFCE7;color:#14532D;border:1px solid #86EFAC}',
 '.clp-note.auto{background:#DBEAFE;color:#1E3A8A;border:1px solid #93C5FD}',
 '.clp-note.mix{background:#FEF3C7;color:#78350F;border:1px solid #FCD34D}',
 '.clp-note button{font:inherit;margin-top:5px;margin-right:4px;border:1px solid currentColor;background:#fff;color:inherit;border-radius:6px;padding:2px 9px;cursor:pointer}',
 '.clp-note button:focus-visible{outline:3px solid #12263F;outline-offset:2px}',
-'#app .head{display:grid;grid-template-columns:minmax(0,1fr) 240px;column-gap:18px;align-items:start}#app .head>*{grid-column:1}#app .head>.clp-note{grid-column:2;grid-row:1/span 3}',
-'main>.clp-note.nb{max-width:calc(var(--max) - 96px);margin:10px auto;width:calc(100% - 96px);display:block}@media (max-width:760px){main>.clp-note.nb{width:calc(100% - 32px)}}',
-'.hero>.clp-note.nb{position:relative;max-width:calc(var(--max) - 96px);margin:0 auto 14px;width:calc(100% - 96px);display:block}@media (max-width:760px){.hero>.clp-note.nb{width:calc(100% - 40px)}}',
+'#app .head,#app section.sec,#app .hero{position:relative}',
+'.clp-note.nb{top:10px;right:16px}',
 'body.clp-nonotes .clp-note{display:none!important}',
 '@media (max-width:760px){#app .head{display:block}#app .head>.clp-note{margin:0 0 10px}}',
 '.clp-x,.clp-lk{position:absolute;top:-10px;z-index:5;width:28px;height:28px;border-radius:50%;border:1px solid #0003;background:#fff;color:#12263F;cursor:pointer;font:16px/1 system-ui;display:grid;place-items:center;padding:0}',
@@ -212,12 +215,14 @@ function notes() {
     var sec = $('#' + id, app); if (!sec || $('.clp-note', sec) || (sec.previousElementSibling && sec.previousElementSibling.classList.contains('clp-note'))) return;
     var n = NOTES[id], d = document.createElement('aside'), head = $('.head', sec), wrap = $('.wrap', sec);
     d.className = 'clp-note ' + n[0] + (head ? '' : ' nb'); d.setAttribute('role', 'note'); d.setAttribute('contenteditable', 'false');
-    d.innerHTML = '<b>' + n[1] + '</b>' + esc(n[2]) + (n[3] ? '<br>' + n[3].map(function (x) { return '<button type="button" data-open="' + x[0] + '">' + x[1] + '</button>'; }).join('') : '');
+    d.innerHTML = '<b tabindex="0" role="button" aria-expanded="false">ⓘ ' + n[1] + '</b><div class="nbody">' + esc(n[2]) + (n[3] ? '<br>' + n[3].map(function (x) { return '<button type="button" data-open="' + x[0] + '">' + x[1] + '</button>'; }).join('') : '') + '</div>';
     var strip = id === 'home' ? $('.strip', sec) : null;
-    if (strip) strip.parentNode.insertBefore(d, strip); else if (head) head.insertBefore(d, head.firstChild); else sec.parentNode.insertBefore(d, sec);
+    if (strip) strip.parentNode.insertBefore(d, strip); else if (head) head.insertBefore(d, head.firstChild); else sec.insertBefore(d, sec.firstChild);
   });
 }
 app.addEventListener('click', function (e) {
+  var nb = e.target.closest && e.target.closest('.clp-note > b');
+  if (nb) { var nn = nb.parentNode, op = nn.classList.toggle('open'); nb.setAttribute('aria-expanded', op ? 'true' : 'false'); return; }
   var b = e.target.closest && e.target.closest('[data-open]'); if (!b) return;
   e.preventDefault(); e.stopPropagation();
   var w = b.getAttribute('data-open');
@@ -616,7 +621,7 @@ function download() {
   a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   dirty = {}; structural = 0; updateStatus(); window.__clpLast = text;
-  say(fname + ' downloaded. Replace the old file in your folder (or upload it to GitHub).');
+  say(fname + ' downloaded. If the browser warns about the file, choose Keep. Then replace the old file in your folder (or upload it to GitHub).');
 }
 
 /* ---------- bar actions + leave guard ---------- */
