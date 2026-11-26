@@ -25,7 +25,7 @@ Hero (tajuk, kod, banner), "Mula di sini", pautan pantas, jadual mingguan mengik
    - **Schedule panel**: kumpulan, minggu, jenis, tarikh, cuti, eksperimen.
    - **Assessment panel**: wajaran, kad laporan dan kriteria markah.
    - **Check**: senarai ralat dan amaran sebelum anda simpan.
-4. Tekan **Muat turun content.js**. Fail itu dimuat turun ke folder Downloads.
+4. Tekan **Muat turun content.js**. Fail itu dimuat turun ke folder Downloads. Jika pelayar memberi amaran fail `.js` "could harm your device", klik **Keep**; ini amaran biasa untuk semua fail `.js`, bukan masalah pada halaman.
 5. **Gantikan** `content.js` lama dalam folder halaman dengan fail baharu, kemudian muat semula halaman.
 
 Suntingan disimpan dalam memori pelayar sahaja sehingga anda muat turun. Pelayar akan memberi amaran jika anda keluar sebelum memuat turun.
@@ -74,7 +74,7 @@ Hero (title, code, banner), "Start here", quick links, weekly schedule per class
    `file:///C:/Users/NAME/Downloads/course-landing-template/index.html?edit`
 2. Click any dashed text and type. Use × to remove an item, **+ Tambah** to add one, and 🔗 to choose a link.
 3. The top bar has **Page setup**, **Schedule panel**, **Assessment panel**, and **Check**.
-4. Press **Muat turun content.js** to download your content.
+4. Press **Muat turun content.js** to download your content. If the browser warns that a `.js` file "could harm your device", choose **Keep**; browsers show this for every `.js` file.
 5. **Replace** the old `content.js` in the page folder with the new one and reload.
 
 Edits live in the browser's memory until you download. The browser warns you if you leave with unsaved changes. The editor interface is in Bahasa Melayu.
