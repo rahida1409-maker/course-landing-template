@@ -1,6 +1,6 @@
 # Course Landing Page Template / Templat Halaman Utama Kursus
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24213008.svg)](https://doi.org/10.5281/zenodo.24213008)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24213007.svg)](https://doi.org/10.5281/zenodo.24213007)
 
 A free, static landing page for one course. No server, no database, no student data.
 Halaman utama kursus yang statik dan percuma. Tiada pelayan, tiada pangkalan data, tiada data pelajar.
@@ -19,16 +19,18 @@ Hero (tajuk, kod, banner), "Mula di sini", pautan pantas, jadual mingguan mengik
 ### 2. Sunting halaman anda (tanpa menulis kod)
 1. Buka `index.html` dalam pelayar, kemudian tambah `?edit` pada hujung alamat. Contoh:
    `file:///C:/Users/NAMA/Downloads/course-landing-template/index.html?edit`
-2. Klik teks yang bergaris putus dan taip untuk menukar. Gunakan × untuk memadam item, **+ Tambah** untuk menambah, dan 🔗 untuk memilih pautan.
+2. Klik teks yang bergaris putus dan taip untuk menukar. Gunakan × untuk memadam item, **+ Add** untuk menambah, dan 🔗 untuk memilih pautan.
 3. Bar di atas ada:
    - **Page setup**: bahasa, tema, banner, pensyarah, bahagian yang dipaparkan, senarai pautan.
    - **Schedule panel**: kumpulan, minggu, jenis, tarikh, cuti, eksperimen.
    - **Assessment panel**: wajaran, kad laporan dan kriteria markah.
    - **Check**: senarai ralat dan amaran sebelum anda simpan.
+
+   Kotak biru (contohnya Class group dan Session) tidak boleh ditaip; ia ditetapkan dalam Schedule panel. Penanda ⓘ pada setiap bahagian menerangkan di mana untuk menyunting. **Undo** (atau Ctrl+Z) membatalkan perubahan terakhir. Makmal yang belum ada dalam jadual dipaparkan sebagai kad "Not in schedule yet" (hanya dalam mod sunting).
 4. Tekan **Save** (di sebelah bilangan perubahan). Fail `content.js` dimuat turun ke folder Downloads. Draf anda juga disimpan automatik dalam pelayar ini; jika tab tertutup, buka `?edit` semula dan pilih **Restore draft**. Jika pelayar memberi amaran fail `.js` "could harm your device", klik **Keep**; ini amaran biasa untuk semua fail `.js`, bukan masalah pada halaman.
 5. **Gantikan** `content.js` lama dalam folder halaman dengan fail baharu, kemudian muat semula halaman.
 
-Suntingan disimpan dalam memori pelayar sahaja sehingga anda muat turun. Pelayar akan memberi amaran jika anda keluar sebelum memuat turun.
+Suntingan disimpan sebagai draf dalam pelayar ini dan hanya menjadi fail apabila anda tekan **Save**. Jika pelayar menamakan muat turun `content (1).js`, namakan semula kepada `content.js` sebelum memuat naik, jika tidak ia tidak menggantikan fail lama.
 
 ### 3. Terbitkan untuk pelajar (GitHub Pages)
 1. Daftar akaun di github.com dan buat repositori baharu (**Public**; GitHub Pages percuma memerlukan repositori awam).
@@ -38,7 +40,7 @@ Suntingan disimpan dalam memori pelayar sahaja sehingga anda muat turun. Pelayar
 5. Untuk mengemas kini: buka `alamat-anda/?edit`, sunting, muat turun `content.js`, kemudian di GitHub pilih **Add file → Upload files** dan muat naik fail itu (ia menggantikan yang lama).
 
 ### Gambar
-Letakkan gambar dalam folder `assets/` (contoh `assets/lecturer.jpg`, `assets/banner.jpg`), kemudian tulis namanya dalam **Page setup**. Tambah penerangan gambar untuk pembaca skrin. Jika fail tiada, halaman menggunakan inisial atau lukisan lalai.
+Letakkan gambar dalam folder `assets/` (contoh `assets/lecturer.jpg`, `assets/banner.jpg`), kemudian tulis namanya dalam **Page setup**. Tambah penerangan gambar untuk pembaca skrin. Jika fail tiada, halaman menggunakan inisial atau lukisan lalai. Untuk foto pensyarah, seret gambar ke bulatan foto dalam mod sunting; gambar dikecilkan dan pautan **Save lecturer.jpg** muncul. Simpan fail itu ke dalam folder `assets/` (dan muat naiknya ke GitHub).
 
 ### Aksesibiliti
 Pautan langkau ke kandungan, struktur tajuk, fokus papan kekunci yang jelas, kontras teks sekurang-kurangnya 4.5:1 (warna utama dilaraskan automatik), dan tiada fon atau skrip luaran melainkan anda mengaktifkan analitik. Sila uji dengan pembaca skrin dan telefon sebenar sebelum menerbitkan.
@@ -51,9 +53,9 @@ Halaman tidak menyimpan data pelajar. Tanda semak "Mula di sini" dan pilihan kum
 |---|---|
 | Halaman "Loading…" atau mesej fail tiada | Ekstrak zip sepenuhnya, buka `index.html` daripada folder yang diekstrak. |
 | Tiada bar sunting | Pastikan alamat berakhir dengan `?edit`. |
-| Perubahan tidak muncul | Anda perlu memuat turun `content.js` dan menggantikan fail lama. |
+| Perubahan tidak muncul | Anda perlu memuat turun `content.js` dan menggantikan fail lama. Semak nama fail: jika pelayar menamakannya `content (1).js`, namakan semula kepada `content.js` sebelum memuat naik (atau padam fail lama di folder Downloads dahulu). |
 | Gambar tidak keluar | Semak nama fail dan huruf besar/kecil, dan fail ada dalam `assets/`. |
-| Halaman GitHub tidak berubah | Tunggu seminit, kemudian muat semula dengan Ctrl+F5. |
+| Halaman GitHub tidak berubah | Tunggu seminit (kadangkala sehingga 10 minit), kemudian muat semula dengan Ctrl+F5. |
 
 ### Kemas kini bahagian (rujukan ringkas `content.js`)
 `course`, `design`, `lecturer`, `links`, `startHere`, `quickLinks`, `sections`, `schedule`, `experiments`, `workflow`, `assessment`, `rules`, `support`, `analytics`, `feedback`, `prepwise`, `footer`, `strings`. Warna utama (pilihan) ditetapkan dengan `design.accent`, contohnya `"#0F766E"`; tiada medan dalam Page setup. Kredit kecil di kaki halaman tidak dipaparkan secara lalai; hidupkan dengan `footer.credit: true`, atau diubah dengan `footer.creditText` dan `footer.creditUrl`. Pautan ditulis sekali dalam `links` dan dirujuk dengan kuncinya. Kunci `email` = e-mel pensyarah. `#schedule` dsb. memaut ke bahagian dalam halaman. Dalam teks, `{testDate}`, `{group}` dan `{session}` digantikan secara automatik. Pengguna lanjutan boleh menyunting `content.js` terus, atau menggunakan `content.json` (letak di sebelah `index.html`, buang `content.js`; perlu dihos atau `python -m http.server`).
@@ -72,12 +74,12 @@ Hero (title, code, banner), "Start here", quick links, weekly schedule per class
 ### 2. Edit your page (no coding)
 1. Open `index.html` in your browser and add `?edit` to the end of the address, for example
    `file:///C:/Users/NAME/Downloads/course-landing-template/index.html?edit`
-2. Click any dashed text and type. Use × to remove an item, **+ Tambah** to add one, and 🔗 to choose a link.
-3. The top bar has **Page setup**, **Schedule panel**, **Assessment panel**, and **Check**.
+2. Click any dashed text and type. Use × to remove an item, **+ Add** to add one, and 🔗 to choose a link.
+3. The top bar has **Page setup**, **Schedule panel**, **Assessment panel**, and **Check**. Blue boxes (for example Class group and Session) cannot be typed into; they are set in the Schedule panel. The ⓘ badge on each section says where to edit. **Undo** (or Ctrl+Z) reverses the last change. A lab that is not in the schedule yet shows as a "Not in schedule yet" card (edit mode only).
 4. Press **Save** (next to the change count). It downloads `content.js` to your Downloads folder. Your draft is also saved automatically in this browser; if the tab closes, reopen `?edit` and choose **Restore draft**. If the browser warns that a `.js` file "could harm your device", choose **Keep**; browsers show this for every `.js` file.
 5. **Replace** the old `content.js` in the page folder with the new one and reload.
 
-Edits live in the browser's memory until you download. The browser warns you if you leave with unsaved changes. The editor interface is in Bahasa Melayu.
+Edits are kept as a draft in this browser and only become a file when you press **Save**. If your browser names the download `content (1).js`, rename it to `content.js` before uploading, or it will not replace the old file. The editor interface is in English.
 
 ### 3. Publish for students (GitHub Pages)
 1. Create a GitHub account and a new **public** repository (free GitHub Pages needs a public repository).
@@ -87,7 +89,7 @@ Edits live in the browser's memory until you download. The browser warns you if 
 5. To update, open `your-address/?edit`, edit, download `content.js`, then upload it to GitHub the same way (it replaces the old file).
 
 ### Images
-Put images in `assets/` (for example `assets/lecturer.jpg`, `assets/banner.jpg`) and type the file name in **Page setup**. Add an image description for screen readers. If a file is missing, the page falls back to initials or the default art.
+Put images in `assets/` (for example `assets/lecturer.jpg`, `assets/banner.jpg`) and type the file name in **Page setup**. Add an image description for screen readers. If a file is missing, the page falls back to initials or the default art. For the lecturer photo, drag a picture onto the photo circle in edit mode; it is resized and a **Save lecturer.jpg** link appears. Save that file into `assets/` (and upload it to GitHub).
 
 ### Accessibility
 Skip link, heading structure, visible keyboard focus, text contrast of at least 4.5:1 (the accent colour is adjusted automatically), and no external fonts or scripts unless you turn on analytics. Please test with a screen reader and a real phone before publishing.
@@ -107,10 +109,10 @@ Code (`index.html`, `css/`, `js/`): MIT, see `LICENSE`. Sample text and document
 
 ## Cite / Petikan
 
-**English.** If you use this template in your teaching, a publication or a presentation, please cite it. When the article about the template is published, please cite the article; until then cite the software record below. Use the GitHub button "Cite this repository" (top right of the repository page) for ready-made APA or BibTeX text. The DOI below always points to the latest version.
+**English.** If you use this template in your teaching, a publication or a presentation, please cite it. When the article about the template is published, please cite the article; until then cite the software record below. Use the GitHub button "Cite this repository" (top right of the repository page) for ready-made APA or BibTeX text. The DOI below is the concept DOI and always points to the latest version.
 
-**Bahasa Melayu.** Jika anda menggunakan templat ini dalam pengajaran, penerbitan atau pembentangan, sila sitasikannya. Apabila artikel tentang templat ini diterbitkan, sila sitasikan artikel itu; sebelum itu gunakan rekod perisian di bawah. Butang "Cite this repository" di GitHub (kanan atas halaman repositori) menyediakan teks APA atau BibTeX siap pakai. DOI di bawah sentiasa menuju ke versi terkini.
+**Bahasa Melayu.** Jika anda menggunakan templat ini dalam pengajaran, penerbitan atau pembentangan, sila sitasikannya. Apabila artikel tentang templat ini diterbitkan, sila sitasikan artikel itu; sebelum itu gunakan rekod perisian di bawah. Butang "Cite this repository" di GitHub (kanan atas halaman repositori) menyediakan teks APA atau BibTeX siap pakai. DOI di bawah ialah DOI konsep dan sentiasa menuju ke versi terkini.
 
-Sharudin, R. W. (2026). *Course Landing Page Template* (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.24213008
+Sharudin, R. W. (2026). *Course Landing Page Template* [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.24213007
 
-Concept DOI (all versions) / DOI konsep (semua versi): shown on the Zenodo record page, under "Versions".
+Each release also has its own version DOI, listed under "Versions" on the Zenodo record page. / Setiap keluaran juga mempunyai DOI versi sendiri, disenaraikan di bawah "Versions" pada halaman rekod Zenodo.
